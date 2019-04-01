@@ -20,7 +20,7 @@
                :xmls
                :nlp-tools
                :plot-raw-data
-               :type-hierarchies)
+               :category-hierarchies)
   :serial t
   :components ((:file "data-structures-and-utils")
                (:file "preprocessing")
