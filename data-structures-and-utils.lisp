@@ -16,6 +16,11 @@
 
 (in-package :fcg)
 
+;;; Hybrid pathname.
+;;; -------------------------------------------------------------------------------------
+(defparameter *dev-tools-pathname* nil)
+(setf *dev-tools-pathname* (make-pathname :directory (pathname-directory (lispworks:current-pathname))))
+
 ;;; Data structures.
 ;;; -------------------------------------------------------------------------------------
 (export '(word-dependency-spec

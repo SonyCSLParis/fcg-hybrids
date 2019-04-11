@@ -29,7 +29,8 @@
                  determiner article quantifier pronoun personal-pronoun possessive-pronoun demonstrative
                  demonstrative-pronoun args referent
                  discourse-structure object-complement
-                 functional-structure head *english-grammar-categories*))
+                 functional-structure head *english-grammar-categories*
+                 constituents))
 
 ;;; 1. Definition of the English grammar categories.
 ;;; ------------------------------------------------------------------------------

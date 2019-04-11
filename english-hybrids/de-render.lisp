@@ -21,6 +21,8 @@
 ;;; Uses the translation functions in /hybrids/semantic-dependency-parser.lisp
 ;;; -----------------------------------------------------------------------------------
 
+;;; ENGLISH-WITH-DEPENDENCY-PARSER
+;;; -----------------------------------------------------------------------------------
 ;;; 1. Get a syntactic dependency tree from the spaCy-api.
 ;;; 2. Make the following modifications to the analysis:
 ;;;    (a) Reconstruct adjectival compounds
