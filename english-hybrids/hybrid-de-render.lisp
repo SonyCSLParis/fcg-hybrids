@@ -61,4 +61,5 @@
                       collect (list (nlp-tools:dp-get-token constituent)
                                     (nlp-tools:dp-get-tag constituent))))                      
       (translate-dependency-tree basic-transient-structure syntactic-analysis *dependency-specs*))))
-;; (show-translated-sentence "Sales of home-brewn beer have fallen 2% in 50 years, affecting beer fanatics.")
+;; (show-translated-sentence "Sales of home-brewn beer have fallen 2% in 50 years, affecting beer fanatics." :english-with-dependency-parser)
+

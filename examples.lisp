@@ -16,29 +16,36 @@
 
 (in-package :fcg)
 
-;;;;; Example of the basic syntactic dependency parser.
-;;;;; -------------------------------------------------
-(defmethod de-render ((utterance string) (mode (eql :example-dependency-translation))
-                      &key cxn-inventory &allow-other-keys)
-  (declare (ignorable mode))
-  (multiple-value-bind (dependency-tree utterance-as-list base-transient-structure)
-      (preprocess-using-dependency-tree utterance :cxn-inventory cxn-inventory)
-    (translate-dependency-tree base-transient-structure
-                               dependency-tree
-                               (fcg-get-dependency-conversion-table cxn-inventory))))
-;; (show-translated-sentence "Oxygen levels in oceans have fallen 2%, affecting marine habitat and large fish." :example-dependency-translation)
+;;;;; Example of the basic syntactic dependency parser using the spacy interface from :nlp-tools
+;;;;; -------------------------------------------------------------------------------------------------
+(defmethod de-render ((utterance string) (mode (eql :spacy-dependency-parser))
+                      &key (key t) cxn-inventory (model "en") &allow-other-keys)
+  (declare (ignorable mode cxn-inventory))
+  (let* (; Step 1: Get the dependency tree:
+         (dependency-tree (nlp-tools:get-penelope-dependency-analysis utterance :model model))
+         ; Step 2: Use the dependency tree for segmenting the utterance into a list of strings:
+         (utterance-as-list (nlp-tools::dp-build-utterance-as-list-from-dependency-tree dependency-tree))
+         ;; Step 3: Use the list of strings for building a basic transient structure:
+         (basic-transient-structure (de-render utterance-as-list :de-render-with-scope
+                                               :cxn-inventory cxn-inventory)))
+    ;; Step 4: Expand the transient structure with information from the dependency tree:
+    (represent-dependency-structure dependency-tree basic-transient-structure key)))
 
-(defmethod de-render ((utterance string) (mode (eql :example-dependency-translation-with-preprocessing))
-                      &key cxn-inventory &allow-other-keys)
+;; (de-render "I like cherries" :spacy-dependency-parser :model "en")          ;; English
+;; (de-render "Ik hou van kersen" :spacy-dependency-parser :model "nl")        ;; Dutch
+;; (de-render "Ich mag Kirschen" :spacy-dependency-parser :model "de")         ;; German
+;; (de-render "Mi piacciono le ciliegie" :spacy-dependency-parser :model "it") ;; Italian
+;; (de-render "Me gustan las cerezas" :spacy-dependency-parser :model "es")    ;; Spanish
+;; (de-render "J'aime les cerises" :spacy-dependency-parser :model "fr")       ;; Spanish
+
+;;;; Example of treating named entities such as "Barack Obama" as one string instead of two nodes in
+;;;; the dependency tree. This could be done in the spacy NLP-pipeline directly, but here we manipulate
+;;;; the results in Lisp.
+(defmethod de-render ((utterance string) (mode (eql :spacy-dependency-parser-with-additional-preprocessing))
+                      &key key cxn-inventory (model "en") &allow-other-keys)
   (declare (ignorable mode))
   (multiple-value-bind (dependency-tree utterance-as-list base-transient-structure)
-      (preprocess-using-dependency-tree utterance
-                                        ;; These steps are executed in order!!
-                                        :preprocessing-steps (list #'dependency-string-append-compounds-in-np
-                                                                   #'dependency-string-append-named-entities
-                                                                   #'dependency-string-append-compounds)
-                                        :cxn-inventory cxn-inventory)
-    (translate-dependency-tree base-transient-structure
-                               dependency-tree
-                               (fcg-get-dependency-conversion-table cxn-inventory))))
-;; (show-translated-sentence "The ever-popular Barack Obama warned about the falling oxygen levels in oceans." :example-dependency-translation-with-preprocessing)
+      (preprocess-using-dependency-tree utterance :preprocessing-steps (list #'dependency-string-append-named-entities)
+                                        :model model :cxn-inventory cxn-inventory)
+    (represent-dependency-structure dependency-tree base-transient-structure key)))
+;; (de-render "I saw Barack Obama." :spacy-dependency-parser-with-additional-preprocessing)

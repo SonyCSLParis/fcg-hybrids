@@ -1,5 +1,6 @@
-;; Copyright 2019 Sony Computer Science Laboratories Paris
-;;                Remi van Trijp (http://www.remivantrijp.eu)
+;; Copyright 2019-present
+;;           Sony Computer Science Laboratories Paris
+;;           Remi van Trijp (http://www.remivantrijp.eu)
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -14,15 +15,11 @@
 ;; limitations under the License.
 ;;=========================================================================
 
-; (ql:quickload :fcg-hybrids)
+;; Remi 26/04/2021:
+;; The contents of this file are depreciated and will not be
+;; maintained in future updates.
 
 (in-package :fcg)
-
-(export '(fcg-get-dependency-conversion-table
-          fcg-set-dependency-conversion-table
-          translate-dependency-tree
-          make-word-specs-for-boundaries
-          show-translated-sentence))
 
 ;;; Translate dependency tree.
 ;;; -------------------------------------------------------------------------------------
@@ -30,18 +27,6 @@
                                        dependency-tree
                                        conversion-table
                                        &key cxn-inventory &allow-other-keys))
-
-(defun make-word-specs-for-boundaries (boundaries dependency-tree)
-  "A useful function to have for customizing the translate-dependency-tree method."
-  (loop for boundary in boundaries
-        for dependency in dependency-tree
-        collect (make-word-dependency-spec :string (nlp-tools::dp-get-token dependency)
-                                           :unit-name (first boundary)
-                                           :syn-role (nlp-tools::dp-get-dependency dependency)
-                                           :pos-tag (nlp-tools::dp-get-tag dependency)
-                                           :node-id (parse-integer
-                                                     (nlp-tools::dp-get-node-id dependency))
-                                           :head-id (nlp-tools::dp-get-head-id dependency))))
 
 (defmethod translate-dependency-tree ((base-transient-structure coupled-feature-structure)
                                       (dependency-tree list)
@@ -67,8 +52,9 @@
                                     collect (make-unit :name (word-dependency-spec-unit-name word-spec)
                                                        :features `((parent ,parent)
                                                                    (subunits ,subunits)
-                                                                   (form ((string ,(word-dependency-spec-unit-name word-spec)
-                                                                                  ,(word-dependency-spec-string word-spec))))
+                                                                   (form ((string
+                                                                           ,(word-dependency-spec-unit-name word-spec)
+                                                                           ,(word-dependency-spec-string word-spec))))
                                                                    (dependency
                                                                     ((pos-tag
                                                                       ,(intern (upcase (word-dependency-spec-pos-tag word-spec)) :fcg))

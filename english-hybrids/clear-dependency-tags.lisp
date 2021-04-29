@@ -74,8 +74,8 @@
                            ("neg" lexical adverbial adverbial "Negation modifier.")
                            ("npadvmod" functional nominal adverbial "NP as adverbial modifier.")
                            ;; Coordination-related modifiers.
-                           ("conj" functional nominal conjunt "Conjunct dependent, e.g. John, Mary and Sam")
-                           ("cc" conjunction conjunction conjunction "Coordinating conjunction.")
+                           ("conj" ignoreable nominal conjunt "Conjunct dependent, e.g. John, Mary and Sam")
+                           ("cc"  lexical conjunction "Coordinating conjunction.")
                            ("preconj" conjunction conjunction conjunction "Pre-correlative conjunction.")
                            ;; NP-modifiers.
                            ("nmod" lexical nominal modifier "Unclassified modifier of the head noun.")
@@ -208,8 +208,10 @@
 (defun dependency-root-p (word-spec)
   (string= "ROOT" (word-dependency-spec-syn-role word-spec)))
 
-(defun adverbial-modifier-p (word-spec)
-  (string= "advmod" (word-dependency-spec-syn-role word-spec)))
+(defun adverbial-modifier-p (function-or-word-spec)
+  (string= "advmod" (if (eql (type-of function-or-word-spec) 'word-dependency-spec)
+                      (word-dependency-spec-syn-role word-spec)
+                      function-or-word-spec)))
 
 (defun particle-p (word-spec)
   (string= "prt" (word-dependency-spec-syn-role word-spec)))

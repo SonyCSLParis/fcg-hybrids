@@ -56,7 +56,7 @@
                         word-specs)
     (word-dependency-spec-node-id head-word-spec)))
 
-(defun handle-functional-unit (function head-word-spec unit-name parent-name word-specs)
+(defun handle-functional-unit (function head-word-spec unit-name parent-name word-specs &optional preprocessed-units)
   "Handle functional units such as nsubj, dobj, dative, and so on."
   (let* ((head-id (word-dependency-spec-node-id head-word-spec))
          (subunit-names (list (word-dependency-spec-unit-name head-word-spec)))
@@ -67,7 +67,9 @@
                           (find-all-features-for-category
                            (english-retrieve-category head-word-spec)
                            *english-grammar-categories*
-                           :features-so-far `((parent ,unit-name))))
+                           :features-so-far `((parent ,unit-name)
+                                              ,@(unit-body (assoc (word-dependency-spec-unit-name head-word-spec)
+                                                                                 preprocessed-units)))))
                     ;; Then we collect other subunits in a way that is as flat as possible.
                     (loop for spec in word-specs
                           ;; We found a subunit other than the Head
@@ -85,13 +87,14 @@
                                        (handle-verbal-root spec word-specs
                                                            (if (subject-p (word-dependency-spec-syn-role spec))
                                                              'clausal-subject 'subclause)
-                                                           unit-name new-unit-name)
+                                                           unit-name new-unit-name preprocessed-units)
                                        ;; Else treat it as a simple functional unit.
                                        (handle-functional-unit (word-dependency-spec-syn-role spec)
                                                                spec
                                                                new-unit-name
                                                                unit-name
-                                                               word-specs)))
+                                                               word-specs
+                                                               preprocessed-units)))
                                    ;; If not, collect the lexical features.
                                    (progn
                                      (push (word-dependency-spec-unit-name spec) subunit-names)
@@ -99,12 +102,14 @@
                                               (find-all-features-for-category
                                                (english-retrieve-category spec)
                                                *english-grammar-categories*
-                                               :features-so-far `((parent ,unit-name)))))))))))
+                                               :features-so-far `((parent ,unit-name)
+                                                                  ,@(unit-body (assoc (word-dependency-spec-unit-name spec)
+                                                                                      preprocessed-units))))))))))))
         (cons `(,unit-name
                 ,@(cond
                    ((core-function-p function)
                     (find-all-features-for-category 'NP *english-grammar-categories*
-                                                    :features-so-far `((subunits ,subunit-names)
+                                                    :features-so-far `((constituents ,subunit-names)
                                                                        (head ,(word-dependency-spec-unit-name head-word-spec))
                                                                        (parent ,parent-name))))
                    (t
@@ -118,11 +123,42 @@
                                              (t
                                               'NP))))
                       (find-all-features-for-category phrase-type *english-grammar-categories*
-                                                      :features-so-far `((subunits ,subunit-names)
+                                                      :features-so-far `((constituents ,subunit-names)
                                                                          (head
                                                                           ,(word-dependency-spec-unit-name head-word-spec))
                                                                          (parent ,parent-name)))))))
               subunits)))
+
+(defun handle-functional-conjuncts (function head-word-spec unit-name parent-name word-specs &optional preprocessed-units)
+  "Handle conjuncts."
+  (let* ((starter-units (handle-functional-unit function head-word-spec unit-name parent-name word-specs preprocessed-units))
+         (mother-unit (assoc unit-name starter-units))
+         (head-word-id (word-dependency-spec-head-id head-word-spec))
+         (constituents nil)
+         (other-conjuncts (loop for spec in word-specs
+                                when (and (= (word-dependency-spec-head-id spec) head-word-id)
+                                          (string= "conj" (word-dependency-spec-syn-role spec)))
+                                collect spec))
+         (conjunctors (loop for spec in word-specs
+                            when (and (= (word-dependency-spec-head-id spec) head-word-id)
+                                      (string= "cc" (word-dependency-spec-syn-role spec)))
+                            collect (progn (push (word-dependency-spec-unit-name spec) constituents)
+                                      `(,(word-dependency-spec-unit-name spec)
+                                        (parent ,(unit-name mother-unit))
+                                        (syn-cat ((lex-class conjunctor)))))))
+         (units-to-append (loop for other-conjunct in (cons head-word-spec other-conjuncts)
+                                for phrase-unit-name = (make-const "conj")
+                                do (push phrase-unit-name constituents)
+                                append (handle-functional-unit function other-conjunct phrase-unit-name (unit-name mother-unit)
+                                                               word-specs preprocessed-units))))
+    (cons `(,(unit-name mother-unit)
+            ,@(loop for feature in (unit-body mother-unit)
+                            collect (if (eql 'constituents (feature-name feature))
+                                      `(constituents ,constituents)
+                                      feature)))
+          (append conjunctors units-to-append))))
+;; (comprehend "I like Mickey Mouse and Donald Duck.")
+;; (comprehend "Do you prefer Mickey Mouse, Donald Duck or Goofy?")
 
 ;;;;; ----------------------------------------------------------------------------------------------------------------------
 ;;;;; CLAUSAL units
@@ -144,7 +180,8 @@
 (defun handle-verbal-root (root-spec &optional word-specs
                                      (clause-type 'matrix-clause)
                                      (parent '-)
-                                     (clause-unit-name (make-const "clause")))
+                                     (clause-unit-name (make-const "clause"))
+                                     preprocessed-units)
   "If the root is verbal, we build a CLAUSE."
   (let* (;; We take the node-id of the root verb as the CLAUSE-NUMBER.
          (clause-number (word-dependency-spec-node-id root-spec))
@@ -163,7 +200,9 @@
                                        ,@(find-all-features-for-category
                                           (english-retrieve-category word-spec)
                                           *english-grammar-categories*
-                                          :features-so-far `((parent ,vp-unit-name))))))
+                                          :features-so-far `((parent ,vp-unit-name)
+                                                             ,@(unit-body (assoc (word-dependency-spec-unit-name word-spec)
+                                                                                 preprocessed-units)))))))
          ;; We also look for midposition adverbs.
          (verb-units-2 (loop for word-spec in word-specs
                              when (and (adverbial-modifier-p word-spec)
@@ -180,7 +219,9 @@
                                        ,@(find-all-features-for-category
                                           (english-retrieve-category word-spec)
                                           *english-grammar-categories*
-                                          :features-so-far `((parent ,vp-unit-name))))))
+                                          :features-so-far `((parent ,vp-unit-name)
+                                                             ,@(unit-body (assoc (word-dependency-spec-unit-name word-spec)
+                                                                                 preprocessed-units)))))))
          (verb-units (append verb-units-1 verb-units-2))
          (verb-unit-names (mapcar #'unit-name verb-units))
          ;; Now handle the functional units.
@@ -206,14 +247,20 @@
                                                           (first (push (make-const function)
                                                                        other-functional-unit-names)))))
                                  when unit-name
-                                 append (if (clausal-dependent-p function)
-                                          (handle-verbal-root word-spec
-                                                              word-specs
-                                                              (if (subject-p function)
-                                                                'clausal-subject 'subclause)
-                                                              clause-unit-name unit-name) 
-                                          (handle-functional-unit
-                                           function word-spec unit-name clause-unit-name word-specs))))
+                                 append (cond ((clausal-dependent-p function)
+                                               (handle-verbal-root word-spec
+                                                                   word-specs
+                                                                   (if (subject-p function)
+                                                                     'clausal-subject 'subclause)
+                                                                   clause-unit-name unit-name preprocessed-units))
+                                              ((word-dependency-spec-conjunct-type word-spec)
+                                               (handle-functional-conjuncts function word-spec unit-name
+                                                                            clause-unit-name word-specs
+                                                                            preprocessed-units))
+                                              (t
+                                               (handle-functional-unit
+                                                function word-spec unit-name
+                                                clause-unit-name word-specs preprocessed-units)))))
          (clause-subunits (append (listify subject-unit-name)
                                   (listify object-unit-name)
                                   (listify dative-unit-name)
@@ -222,33 +269,19 @@
     (append `(;; The main clause.
               (,clause-unit-name
                ,@(find-all-features-for-category clause-type *english-grammar-categories*
-                                                 :features-so-far `((subunits ,clause-subunits)
-                                                                    (parent ,parent)
-                                                                    (functional-structure
-                                                                     (,@(when subject-unit-name
-                                                                          `((subject ,subject-unit-name)))
-                                                                      ,@(when object-unit-name
-                                                                          `((object ,object-unit-name)))
-                                                                      ,@(when dative-unit-name
-                                                                          `((dative ,dative-unit-name))))))))
+                                                 :features-so-far `((constituents ,clause-subunits)
+                                                                    (parent ,parent))))
               ;; The VP and its subunits.
               (,vp-unit-name
                ,@(find-all-features-for-category
                   'VP *english-grammar-categories*
-                  :features-so-far `((subunits ,verb-unit-names)
+                  :features-so-far `((constituents ,verb-unit-names)
                                      (parent ,clause-unit-name)
-                                     (functional-structure
-                                      (,@(when subject-unit-name
-                                           `((subject ,subject-unit-name)))
-                                       ,@(when object-unit-name
-                                           `((object ,object-unit-name)))
-                                       ,@(when dative-unit-name
-                                           `((dative ,dative-unit-name)))))
                                      (head ,(word-dependency-spec-unit-name root-spec))))))
             verb-units
             ;; The functional units.
             functional-units)))
-;; (comprehend "I see Mickey Mouse")
+;; (comprehend "I see Mickey Mouse and Donald Duck.")
 
 (defun nominal-phrase-p (unit)
   (find '(phrase-type NP) (unit-feature-value unit 'syn-cat) :test #'unify))

@@ -16,14 +16,45 @@
 
 (in-package :fcg)
 
+;; Basic de-render that builds on :de-render-with-scope
+;; Does not assume a hybrid.
+;; ------------------------------------------------------------------------------------------------------------
+(defmethod de-render ((utterance list) (mode (eql :english-de-render)) &key cxn-inventory &allow-other-keys)
+  "De-render based on :de-render-with-scope but does some post-processing."
+  (let ((transient-structure
+         (de-render utterance :de-render-with-scope :cxn-inventory cxn-inventory)))
+
+    ;; Check for unknown strings.
+    (set-data transient-structure :unknown-strings nil)    
+    (loop for string in (reverse utterance)
+          unless (or (word-in-dictionary-p string cxn-inventory)
+                     (find string (get-data transient-structure :unknown-strings) :test #'equalp))
+          ;;no lex cxn existing
+          do (set-data transient-structure :unknown-strings
+                       (cons string (get-data transient-structure :unknown-strings))))
+
+    ;; Keep the utterance.
+    (set-data transient-structure :utterance utterance)
+    ;; We return the transient structure:
+    transient-structure))
+
+(defmethod de-render ((utterance string) (mode (eql :english-de-render)) &key cxn-inventory &allow-other-keys)
+  "De-renders just like de-render-with-scope, but uses English tokenizer to split the utterance into tokens."
+  (declare (ignorable mode))
+  (de-render (tokenize-english-sentence utterance) :english-de-render :cxn-inventory cxn-inventory))
+
+;;; (defmethod de-render ((utterance list) (mode (eql :english-de-render)) &key cxn-inventory &allow-other-keys)
+;;;   "Takes a list of one string and de-renders the string."
+;;;   (assert (single-solution-p utterance))
+;;;   (de-render (first utterance) mode :cxn-inventory cxn-inventory))
+
+
 ;;; +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ;;; DE-RENDER methods for the FCG hybrid.
 ;;; Uses the translation functions in /hybrids/semantic-dependency-parser.lisp
 ;;; -----------------------------------------------------------------------------------
 
-;;; ENGLISH-WITH-DEPENDENCY-PARSER
-;;; -----------------------------------------------------------------------------------
-;;; 1. Get a syntactic dependency tree from the spaCy-api.
+;;; 1. Get a syntactic dependency tree from Penelope.
 ;;; 2. Make the following modifications to the analysis:
 ;;;    (a) Reconstruct adjectival compounds
 ;;;        e.g. Re-compose ("home" "-" "brewn") into the string "home-brewn"
