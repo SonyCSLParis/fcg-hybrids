@@ -28,6 +28,7 @@
                :category-hierarchies)
   :serial t
   :components ((:file "data-structures-and-utils")
+               (:file "universal-dependencies")
                (:module "structures" ;; Other possible terminology: layers, dimensions, perspectives
                 :serial t
                 :components (;; Dependency and functional structures (head-dependent relations):
