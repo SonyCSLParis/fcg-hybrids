@@ -92,7 +92,7 @@
 
 (defmethod represent-constituent-structure ((constituent-tree list)
                                             (transient-structure coupled-feature-structure)
-                                            (key (eql :english-hybrids))
+                                            (key (eql :english))
                                             (cxn-inventory t)
                                             &optional (language t))
   "Represent constituent structure using BeNePar, assuming already a dependency structure."
@@ -129,11 +129,9 @@
                                                          (first constituent)))))
              (setf queue (append new-nodes-to-queue queue))
              (push `(,unit-name
-                     ,@(find-all-features-for-category (fetch-syntactic-category category) *english-fcg-categories*
+                     ,@(find-all-features-for-fcg-category (fetch-syntactic-category category) *english-fcg-categories*
                                                        :features-so-far `(,@(if parent `((parent ,parent)))
-                                                                          (constituents ,(mapcar #'second new-nodes-to-queue))
-                                                                          (node-accessor
-                                                                           ,(format nil "~a-~a" category (length new-nodes-to-queue))))))
+                                                                          (constituents ,(mapcar #'second new-nodes-to-queue)))))
                    units)))
        ;; Now we reiterate
        (go start))
@@ -163,86 +161,3 @@
         (setf (left-pole-structure transient-structure)
               (cons new-root units))
         transient-structure))))
-;; (de-render "Luc Steels was the first director of Sony CSL Paris." :beng-spacy-benepar)
-;; (comprehend "if the can get sufficient funding")
-;; (dev-tools:dev-construction-tutor)
-
-
-
-(defmethod de-render ((utterance string) (mode (eql :english-hybrid))
-                      &key (key :english) cxn-inventory (model "en") &allow-other-keys)
-  (declare (ignorable mode cxn-inventory))
-  (let* (; Step 1: Get the dependency tree:
-         (dependency-tree (nlp-tools:get-penelope-dependency-analysis utterance :model model))
-         ; Step 2: Use the dependency tree for segmenting the utterance into a list of strings:
-         (utterance-as-list (nlp-tools::dp-build-utterance-as-list-from-dependency-tree dependency-tree))
-         ;; Step 3: Use the list of strings for building a basic transient structure:
-         (basic-transient-structure (de-render utterance-as-list :de-render-with-scope
-                                               :cxn-inventory cxn-inventory)))
-    ;; Step 4: Expand the transient structure with information from the dependency tree:
-    (represent-functional-structure dependency-tree basic-transient-structure key *english-dependency-specs*)))
-
-;; (de-render "the thief was caught by the police" :english-hybrid)
-
-
-
-
-
-         
-         
-;;;          (structure-to-append (loop for word-spec in word-specs
-;;;                                     for dependent-word-specs =
-;;;                                     (loop for other-word-spec in word-specs
-;;;                                           when (and (not (equal word-spec other-word-spec))
-;;;                                                     (= (word-dependency-spec-head-id other-word-spec)
-;;;                                                        (word-dependency-spec-node-id word-spec)))
-;;;                                           collect other-word-spec)
-;;;                                     for dependents = (mapcar #'word-dependency-spec-unit-name dependent-word-specs)
-;;;                                     for functional-structure =
-;;;                                     (loop for other-word-spec in dependent-word-specs
-;;;                                           for function = (word-dependency-spec-syn-role
-;;;                                                           other-word-spec)
-;;;                                           collect (cond
-;;;                                                    ((subject-p function)
-;;;                                                     `(subject
-;;;                                                       ,(word-dependency-spec-unit-name
-;;;                                                         other-word-spec)))
-;;;                                                    ((object-p function)
-;;;                                                     `(object ,(word-dependency-spec-unit-name
-;;;                                                                other-word-spec)))
-;;;                                                    ((indirect-object-p function)
-;;;                                                     `(indirect-object
-;;;                                                       ,(word-dependency-spec-unit-name
-;;;                                                         other-word-spec)))
-;;;                                                    ((adverbial-modifier-p function)
-;;;                                                     `(adv-modifier
-;;;                                                       ,(word-dependency-spec-unit-name
-;;;                                                         other-word-spec)))
-;;;                                                    (t
-;;;                                                     nil)))
-;;;                                     collect
-;;;                                     (make-unit :name (word-dependency-spec-unit-name word-spec)
-;;;                                                :features
-;;;                                                (find-all-features-for-category
-;;;                                                 (english-retrieve-category word-spec)
-;;;                                                 *english-grammar-categories*
-;;;                                                 :features-so-far `((dependents ,dependents)
-;;;                                                                    (pos ,(word-dependency-spec-pos-tag word-spec))
-;;;                                                                    ,@(if functional-structure
-;;;                                                                        `((functional-structure ,functional-structure)
-;;;                                                                          ,@(dolist (other-spec word-specs)
-;;;                                                                              (cond ((passive-subject-p
-;;;                                                                                      (word-dependency-spec-syn-role
-;;;                                                                                       other-spec))
-;;;                                                                                     (return `((voice passive))))
-;;;                                                                                    ((subject-p
-;;;                                                                                      (word-dependency-spec-syn-role
-;;;                                                                                       other-spec))
-;;;                                                                                     (return `((voice active))))
-;;;                                                                                    (t
-;;;                                                                                     nil)))))))))))
-;;;     (setf (left-pole-structure transient-structure)
-;;;           (append (left-pole-structure transient-structure) structure-to-append))
-;;;     transient-structure))
-
-  

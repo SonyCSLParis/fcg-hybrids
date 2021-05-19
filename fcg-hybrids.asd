@@ -47,18 +47,10 @@
                               :serial t
                               :components ((:file "categories")
                                            (:file "pos-tags")
-                                           (:file "clear-dependency-specs"))))))
-                                           ;(:file "represent-structures"))))))
+                                           (:file "clear-dependency-specs")
+                                           (:file "represent-structures")
+                                           (:file "de-render")))))
+               (:file "examples"))
   :description "Multilingual library for combining symbolic FCG-grammars with NLP tools. Currently, this is achieved by translating
                 output from the NLP-tools into transient structures, onto which FCG grammars can operate. In other words, this is
                 useful for integrating FCG as a step in an NLP-pipeline.")
-
-;;;                ;; Some examples of de-render methods using preprocessing tools with preprocessing:
-;;;                (:file "examples")
-;;;                (:module "english-hybrids"
-;;;                 :serial t
-;;;                 :components ((:file "categories")
-;;;                              (:file "translate-dependency-tree")
-;;;                              (:file "render")
-;;;                              (:file "de-render"))))
-  

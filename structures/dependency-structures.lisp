@@ -90,23 +90,3 @@
             (append (left-pole-structure transient-structure) new-units))
       (set-data transient-structure :dependency-tree dependency-tree)
       transient-structure))
-
-
-;; 2- Dependency conversion tables.
-;; ------------------------------------------------------------------------------------------------
-
-(export '(fcg-get-dependency-conversion-table fcg-set-dependency-conversion-table))
-
-(defgeneric retrieve-category-from-conversion-table (category-name conversion-table))
-
-(defmethod retrieve-category-from-conversion-table ((category-name t)
-                                                    (conversion-table list))
-  (second (assoc category-name conversion-table)
-                 :test #'equal))
-
-(defun fcg-get-dependency-conversion-table (&optional cxn-inventory)
-  (or (when cxn-inventory (get-configuration cxn-inventory :dependency-conversion-table))
-      t)) ;; At least always return T.
-
-(defun fcg-set-dependency-conversion-table (cxn-inventory data)
-  (set-configuration cxn-inventory :dependency-conversion-table data))
