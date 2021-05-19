@@ -15,10 +15,44 @@
 ;; limitations under the License.
 ;;=========================================================================
 
+(in-package :nlp-tools)
+
+(setf *penelope-host* "http://spacy.fcg-net.org/")
+
+;; The FCG-hybrids uses functions from the NLP-tools package as much as possible.
+;; For English, however, a combination of SpaCy and the Berkeley Neural Parser
+;; is used, so we can ask for both a dependency- and constituent analysis.
+
+(defun run-english-parser (sentence &key (model "en"))
+  "Call the penelope server to get the dependency labels all words in a sentence."
+  (unless (stringp sentence)
+    (error "The function <run-english-parser> expects a string as input"))
+  (send-request "/beng"
+                (encode-json-to-string `((:sentence . ,(remove-multiple-spaces sentence))
+                                         (:model . ,model)))))
+
+(defun convert-ica-string-to-ica-list (string)
+  "Converts a string representing a constituent analysis into a list representation."
+  (loop for pair in '(("." "\\.")
+                      ("," "\\,")
+                      ("''" "PARENTH")
+                      ("``" "PARENTH")
+                      ("\"" "PARENTH"))
+        do (setf string (string-replace string (first pair) (second pair))))
+  (read-from-string string))
+
+(export '(get-english-sentence-analysis))
+
+(defun get-english-sentence-analysis (sentence &key (model "en")) ;; To do: allow sentence ID.
+  "Get a dependency and immediate constituent analysis for an English sentence."
+  (let* ((analysis (run-english-parser (format nil "~a" sentence) :model model))
+         (dependency-tree (rest (assoc :tree (first (rest (assoc :beng analysis))))))
+         (constituent-tree (convert-ica-string-to-ica-list (second (assoc :ica (second (first analysis)))))))
+    (values dependency-tree constituent-tree)))
+
 (in-package :fcg)
 
-(import '(nlp-tools::*penelope-host*))
-(setf *penelope-host* "http://spacy.fcg-net.org/")
+(import '(nlp-tools:get-english-sentence-analysis))
 
 ;;; Helper functions.
 ;;; -------------------------------------------------------------------------------------

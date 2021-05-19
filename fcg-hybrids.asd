@@ -27,8 +27,10 @@
                :plot-raw-data
                :category-hierarchies)
   :serial t
-  :components ((:file "data-structures-and-utils")
+  :components ((:file "configuration-and-utils")
+               (:file "fcg-categories")
                (:file "universal-dependencies")
+               (:file "syntactic-tags")
                (:module "structures" ;; Other possible terminology: layers, dimensions, perspectives
                 :serial t
                 :components (;; Dependency and functional structures (head-dependent relations):
@@ -38,15 +40,25 @@
                              (:file "constituent-structures")))
                ;; Functions for manipulating a preprocessing result in lisp:
                (:file "preprocessing")
-               ;; Some examples of de-render methods using preprocessing tools with preprocessing:
-               (:file "examples")
-               (:module "english-hybrids"
+               ;; Supported languages:
+               (:module "languages"
                 :serial t
-                :components ((:file "clear-dependency-tags")
-                             (:file "categories")
-                             (:file "translate-dependency-tree")
-                             (:file "render")
-                             (:file "de-render"))))
+                :components ((:module "English"
+                              :serial t
+                              :components ((:file "categories")
+                                           (:file "pos-tags")
+                                           (:file "clear-dependency-specs"))))))
+                                           ;(:file "represent-structures"))))))
   :description "Multilingual library for combining symbolic FCG-grammars with NLP tools. Currently, this is achieved by translating
                 output from the NLP-tools into transient structures, onto which FCG grammars can operate. In other words, this is
                 useful for integrating FCG as a step in an NLP-pipeline.")
+
+;;;                ;; Some examples of de-render methods using preprocessing tools with preprocessing:
+;;;                (:file "examples")
+;;;                (:module "english-hybrids"
+;;;                 :serial t
+;;;                 :components ((:file "categories")
+;;;                              (:file "translate-dependency-tree")
+;;;                              (:file "render")
+;;;                              (:file "de-render"))))
+  
