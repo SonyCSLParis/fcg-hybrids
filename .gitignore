@@ -1,3 +1,4 @@
 *.lisp~
 *.xfasl
 *.asd~
+*.64xfasl
