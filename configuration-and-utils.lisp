@@ -52,8 +52,6 @@
 
 (in-package :fcg)
 
-(import '(nlp-tools:get-english-sentence-analysis))
-
 ;;; Helper functions.
 ;;; -------------------------------------------------------------------------------------
 (defun calculate-boundaries-and-form-constraints (base-transient-structure
