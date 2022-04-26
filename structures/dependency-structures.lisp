@@ -1,4 +1,3 @@
-
 ;; Copyright 2019 Sony Computer Science Laboratories Paris
 ;;                Remi van Trijp (http://www.remivantrijp.eu)
 
@@ -31,6 +30,15 @@
 (defstruct word-dependency-spec
   "A STRUCT to keep track of dependency-structure information and unit information."
   string syn-role unit-name pos-tag node-id head-id conjunct-type)
+
+(defmethod copy-object ((spec word-dependency-spec))
+  (make-word-dependency-spec :string (word-dependency-spec-string spec)
+                             :syn-role (word-dependency-spec-syn-role spec)
+                             :unit-name (word-dependency-spec-unit-name spec)
+                             :pos-tag (word-dependency-spec-pos-tag spec)
+                             :node-id (word-dependency-spec-node-id spec)
+                             :head-id (word-dependency-spec-head-id spec)
+                             :conjunct-type (word-dependency-spec-conjunct-type spec)))
 
 (defun make-word-specs-for-boundaries (boundaries dependency-tree)
   "A useful function to have for customizing the translate-dependency-tree method."

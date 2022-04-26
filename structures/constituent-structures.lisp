@@ -19,6 +19,24 @@
 
 (export '(represent-constituent-structure))
 
+;; ICA = Immediate Constituent Analysis
+;;
+;; Contents:
+;; 1- Helper functions
+;; -------------------------------------------------------------------------
+(defun convert-ica-string-to-ica-list (string)
+  "Converts a string representing a constituent analysis into a list representation."
+  (loop for pair in '(("." "\\.")
+                      ("," "\\,")
+                      ("''" "PARENTH")
+                      ("``" "PARENTH")
+                      ("\"" "PARENTH"))
+        do (setf string (string-replace string (first pair) (second pair))))
+  (read-from-string string))
+
+;; 2- Representing Constituent Structures
+;; -------------------------------------------------------------------------
+
 (defgeneric represent-constituent-structure (analysis transient-structure key cxn-inventory &optional language)
   (:documentation "Given a constituent structure analysis, expand the transient structure with units for phrases and constituency relations."))
 

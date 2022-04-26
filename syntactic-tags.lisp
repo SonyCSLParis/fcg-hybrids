@@ -20,7 +20,7 @@
 (defvar *penn-treebank-syntactic-tags* nil "Syntactic tags used by the Penn Treebank")
 
 (setf *penn-treebank-syntactic-tags*
-      '((ADJP adjective-phrase)
+      `((ADJP adjective-phrase)
         (ADVP adverbial-phrase)
         (NP noun-phrase)
         (PP prepositional-phrase)
@@ -35,7 +35,7 @@
         (WHPP WH-prepositional-phrase)
         (X unknown-constituent)
         (* understood-subject-of-infinitive-or-imperative)
-        (0 zero-that)))
+        (,(make-symbol "0") zero-that)))
 ;; Left out: T (trace) and NIL (pied-piping)
 
 (defun fetch-syntactic-category (category &optional (syntactic-categories *penn-treebank-syntactic-tags*))

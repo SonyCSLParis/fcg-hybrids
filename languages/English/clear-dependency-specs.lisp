@@ -1,6 +1,5 @@
-;; Copyright 2019-present
-;;           Sony Computer Science Laboratories Paris
-;;           Remi van Trijp (http://www.remivantrijp.eu)
+;; Copyright Sony Computer Science Laboratories Paris
+;; Author    Remi van Trijp (http://www.remivantrijp.eu)
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -46,13 +45,13 @@
                                   :keywords '(core-argument functional nominal subject)
                                   :description "Nominal Subject")
             (make-dependency-spec :label "nsubjpass"
-                                  :keywords '(core-argument functional nominal subject)
+                                  :keywords '(core-argument functional nominal passive subject)
                                   :description "Nominal Passive Subject")
             (make-dependency-spec :label "csubj"
                                   :keywords '(core-argument functional clausal-subject subject)
                                   :description "Clausal subject.")
             (make-dependency-spec :label "csubjpass"
-                                  :keywords '(core-argument functional clausal-subject subject)
+                                  :keywords '(core-argument functional clausal-subject passive subject)
                                   :description "Clausal passive subject.")
             (make-dependency-spec :label "expl"
                                   :keywords '(core-argument functional nominal subject)
@@ -87,7 +86,7 @@
                                   :keywords '(functional adjectival complement)
                                   :description "Adjectival complement.")
             (make-dependency-spec :label "ccomp"
-                                  :keywords '(functional clausal complement)
+                                  :keywords '(core-argument functional clausal complement)
                                   :description "Clausal complement.")
             (make-dependency-spec :label "xcomp"
                                   :keywords '(functional clausal complement)

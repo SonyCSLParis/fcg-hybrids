@@ -30,6 +30,10 @@
 ;; We use the same method for simultaneously representing information regarding functional structure,
 ;; dependency relations, and part-of-speech information.
 
+(defun retrieve-lexical-fcg-category (word-dependency-spec &optional (pos-tags *english-pos-tags-spacy*))
+  (second (or (assoc (word-dependency-spec-syn-role word-dependency-spec) pos-tags :test #'string=)
+              (assoc (word-dependency-spec-pos-tag word-dependency-spec) pos-tags :test #'string=))))
+
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
                                            (key (eql :english)) &optional (language *english-dependency-specs*))
@@ -75,10 +79,12 @@
 
                           ;; (4) We collect the unit
                           collect `(,(word-dependency-spec-unit-name word-spec)
-                                    ,@(if dependent-specs `((dependents ,dependent-unit-names)))
-                                    ,@(if dependency-head `((dep-head ,dependency-head)))
-                                    ,@(if functional-structure `((functional-structure ,@functional-structure)))))))
-
+                                    ,@(find-all-features-for-fcg-category
+                                       (retrieve-lexical-fcg-category word-spec *english-pos-tags-spacy*)
+                                       *english-fcg-categories*
+                                       :features-so-far `(,@(if dependent-specs `((dependents ,dependent-unit-names)))
+                                                          ,@(if dependency-head `((dep-head ,dependency-head)))
+                                                          ,@(if functional-structure `((functional-structure ,functional-structure)))))))))
       ;; Now we add the new units to the transient structure.
       ;; This is situated in the left-pole-structure of the transient structure (right-pole-structure is no longer used).
       (setf (left-pole-structure transient-structure)
@@ -90,6 +96,29 @@
 ;; Constituent Structure (based on BeNePar):
 ;; -------------------------------------------------------------------------------------------------------------
 
+;; (comprehend "I will be going" :cxn-inventory *fcg-english*)
+
+(defun flattable-phrase-p (constituent-tree)
+  (let ((phrase-type (first constituent-tree)))
+    (and (member phrase-type '(vp)) ;; Perhaps we should add others like NP as well
+         (assoc phrase-type (rest constituent-tree)))))
+;; (flattable-phrase-p '(np (a b) (np det n)))
+
+(defun flatten-phrases (constituent-tree)
+  "Avoid unnecessary nesting of the tree."
+  (cond ((null constituent-tree) nil)
+        ((terminal-node-p constituent-tree) constituent-tree)
+        ((flattable-phrase-p constituent-tree)
+         (let ((phrase-type (first constituent-tree)))
+           (cons phrase-type
+                 (mapcar #'flatten-phrases (loop for constituent in (rest constituent-tree)
+                                                 append (if (eql phrase-type (first constituent))
+                                                          (rest constituent)
+                                                          (list constituent)))))))
+        (t
+         (cons (first constituent-tree)
+               (mapcar #'flatten-phrases (rest constituent-tree))))))
+
 (defmethod represent-constituent-structure ((constituent-tree list)
                                             (transient-structure coupled-feature-structure)
                                             (key (eql :english))
@@ -97,6 +126,7 @@
                                             &optional (language t))
   "Represent constituent structure using BeNePar, assuming already a dependency structure."
   (declare (ignore key language))
+  ; (setf constituent-tree (flatten-phrases constituent-tree))
   (let* (;; We already have units for all terminal nodes of the constituent structure:
          (original-unit-names (mapcar #'first (fcg-get-boundaries transient-structure)))
          (original-units (fcg-get-transient-unit-structure transient-structure))

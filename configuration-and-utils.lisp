@@ -33,7 +33,8 @@
 
 (defun convert-ica-string-to-ica-list (string)
   "Converts a string representing a constituent analysis into a list representation."
-  (loop for pair in '(("." "\\.")
+  (loop for pair in '((":" "\\:")
+                      ("." "\\.")
                       ("," "\\,")
                       ("''" "PARENTH")
                       ("``" "PARENTH")

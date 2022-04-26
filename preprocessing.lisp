@@ -113,6 +113,12 @@
         unless (string= "CARDINAL" (second ne-result))
         collect (first ne-result)))
 
+(defun get-penelope-named-entities-for-beng (sentence)
+  "Return the named entities but not the cardinals."
+  (loop for ne-result in (nlp-tools::get-penelope-named-entities sentence)
+        unless (string= "CARDINAL" (second ne-result))
+        collect ne-result))
+
 (defun get-penelope-named-entities-without-cardinals-and-dates (sentence)
   "Return the named entities but not the cardinals."
   (loop for ne-result in (nlp-tools::get-penelope-named-entities sentence)
@@ -130,6 +136,7 @@
                                     (split-sequence::split-sequence #\Space named-entity)
                                     dependency-tree named-entity))
           finally (return (values dependency-tree :named-entities named-entities-result)))))
+;; (preprocess-using-dependency-tree "He voted for Barack Obama" :preprocessing-steps (list #'dependency-string-append-named-entities))
 
 (defun check-for-chunk (string dependencies &optional string-so-far)
   "If the de-render chunked some strings, we take the last word as its main category."
@@ -225,7 +232,9 @@
                                  (t
                                   dependent))))))
 
-;; Examples:
-;; ---------
-;; (preprocess-using-dependency-tree "I saw Barack Obama." :preprocessing-steps (list #'dependency-string-append-named-entities))
-;; (preprocess-using-dependency-tree "I saw Barack Obama." :preprocessing-steps (list #'dependency-string-append-named-entities #'dependency-remove-punct))
+;; Compare:
+;; --------
+;; (preprocess-using-dependency-tree "I saw Barack Obama" :preprocessing-steps (list #'dependency-string-append-named-entities))
+;; (preprocess-using-dependency-tree "I saw the fun-loving criminals" :preprocessing-steps (list #'dependency-string-append-compounds-in-np))
+;; (preprocess-using-dependency-tree "I saw Barack Obama and his ever-radiant wife Michelle" :preprocessing-steps (list #'dependency-string-append-named-entities))
+;; (preprocess-using-dependency-tree "I saw Barack Obama and his ever-radiant wife Michelle" :preprocessing-steps (list #'dependency-string-append-compounds-in-np #'dependency-string-append-named-entities))

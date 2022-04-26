@@ -30,6 +30,43 @@
 ;; Example:
 ;; (represent-functional-structure dependency-tree transient-structure t :english)
 ;;
+;; The default method, implemented here, simply adds information from a spacy-dependency parse (provided by the :nlp-tools package)
+;; to a transient structure.
+
+(defmethod represent-functional-structure ((dependency-tree list)
+                                           (transient-structure coupled-feature-structure)
+                                           (key t) ;; We assume the Penelope interface with SpaCy
+                                           &optional (language t)) ;; Works for any language
+  "Given a dependency tree provided by the :NLP-TOOLS package, expand the transient structure with head-dependent relations.
+   The transient structure is assumed to only contain a ROOT unit with the feature boundaries."
+  (declare (ignore key language))
+  (let* ((boundaries (fcg-get-boundaries transient-structure))
+         (word-specs (make-word-specs-for-boundaries boundaries dependency-tree)) ;; For keeping track of unit names
+         (new-units (loop for word-spec in word-specs
+                          ;; We check whether the word has dependents:
+                          for dependents = (loop for other-word-spec in word-specs
+                                                 when (and (not (equal word-spec other-word-spec))
+                                                           (= (word-dependency-spec-head-id other-word-spec)
+                                                              (word-dependency-spec-node-id word-spec)))
+                                                 collect (word-dependency-spec-unit-name other-word-spec))
+                          ;; We check whether the word has a head:
+                          for dependency-head = (unless ;; Unless the word doesn't point to a higher node:
+                                                    (equal (word-dependency-spec-head-id word-spec)
+                                                           (word-dependency-spec-node-id word-spec))
+                                                  (word-dependency-spec-unit-name
+                                                   (find (word-dependency-spec-head-id word-spec)
+                                                         word-specs :key #'word-dependency-spec-node-id :test #'equal)))
+                          ;; We collect the unit
+                          collect `(,(word-dependency-spec-unit-name word-spec)
+                                    ,@(if dependency-head `((dependency-head ,dependency-head)))
+                                    ,@(if dependents `((dependents ,dependents)))
+                                    (syn-cat ((pos-tag ,(word-dependency-spec-pos-tag word-spec))
+                                              (dependency-relation ,(word-dependency-spec-syn-role word-spec))))))))
+    ;; Now we add the new units to the transient structure.
+    ;; This is situated in the left-pole-structure of the transient structure (right-pole-structure is no longer used).
+    (setf (left-pole-structure transient-structure)
+          (append (left-pole-structure transient-structure) new-units))
+    transient-structure))
 ;;
 ;; About functional structure:
 ;; ---------------------------
@@ -38,7 +75,3 @@
 ;; constructions (e.g. the Subject-Predicate construction), through preprocessing (dependency parsing),
 ;; or a combination of both. Below are a couple of helper functions to identify the most important
 ;; relations.
-
-
-
-

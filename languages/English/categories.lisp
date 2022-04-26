@@ -1,5 +1,5 @@
-;; Copyright 2019 Sony Computer Science Laboratories Paris
-;;                Remi van Trijp (http://www.remivantrijp.eu)
+;; Copyright 2021 Sony Computer Science Laboratories Paris
+;; Author         Remi van Trijp (http://www.remivantrijp.eu)
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -82,6 +82,7 @@
         (verb-base-form (verb))
         (verb-past (verb)
                    (syn-cat ((verb-form ed-form))))
+        (verb-past-participle (verb-past))
         (verb-ing-form (verb)
                        (syn-cat ((verb-form ing-form))))
         (verb-3sg (verb))

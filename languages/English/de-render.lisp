@@ -1,3 +1,4 @@
+
 ;; Copyright 2019-present
 ;;           Sony Computer Science Laboratories Paris
 ;;           Remi van Trijp (http://www.remivantrijp.eu)
@@ -22,7 +23,7 @@
   (declare (ignorable mode cxn-inventory))
   ; Step 1: Get the dependency and constituent analysis:
   (multiple-value-bind (dependency-tree constituent-tree)
-      (get-english-sentence-analysis utterance)
+      (nlp-tools::get-english-sentence-analysis utterance)
   (let* (; Step 2: Use the dependency tree for segmenting the utterance into a list of strings:
          (utterance-as-list (nlp-tools::dp-build-utterance-as-list-from-dependency-tree dependency-tree))
          ;; Step 3: Use the list of strings for building a basic transient structure:
@@ -34,4 +35,5 @@
     ;; Step 5: Expand the transient structure with information from the constituent tree:
     (setf basic-transient-structure
           (represent-constituent-structure constituent-tree basic-transient-structure key cxn-inventory))
+    ;; Step 6: Use constructional information to correct the constituent tree:
     basic-transient-structure)))

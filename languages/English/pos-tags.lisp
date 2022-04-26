@@ -59,6 +59,7 @@
         ("UH" interjection)
         ("VB" verb-base-form)
         ("VBD" verb-past)
+        ("VBN" verb-past-participle)
         ("VBG" verb-ing-form)
         ("VBZ" verb-3sg)
         ("WDT" wh-determiner)
@@ -66,4 +67,7 @@
         ("WP$" wh-possessive-pronoun)
         ("WRB" wh-adverb)
         ("XX" unknown)
-        ("`" opening-quotation-mark)))
+        ("`" opening-quotation-mark)
+        ;; Adding dependency relations that function as categories as well:
+        ("aux" aux)
+        ("auxpass" auxpass)))

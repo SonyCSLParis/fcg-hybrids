@@ -1,3 +1,4 @@
+
 ;; Copyright 2019 Sony Computer Science Laboratories Paris
 ;;                Remi van Trijp (http://www.remivantrijp.eu)
 
@@ -18,7 +19,7 @@
 
 ;;; Definition of an FCG-CATEGORY.
 ;;; ------------------------------------------------------------------------------
-;;; An FCG-category is a triplet of the form (category-name (parents) (fv-pairs)).
+;;; An FCG-category is a triple of the form (category-name (parents) (fv-pairs)).
 ;;; The feature-value pairs of the fcg-category are meant to be the VALUE of a
 ;;; feature in the construction, such as SYN-CAT. Overwritting a value only goes
 ;;; one level deep.
