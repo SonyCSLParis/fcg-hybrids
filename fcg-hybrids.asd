@@ -24,8 +24,7 @@
   :depends-on (:fcg
                :xmls
                :nlp-tools
-               :plot-raw-data
-               :category-hierarchies)
+               :plot-raw-data)
   :serial t
   :components ((:file "configuration-and-utils")
                (:file "fcg-categories")
@@ -51,6 +50,12 @@
                                            (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))
+                             (:module "French"
+                              :serial t
+                              :components ((:file "categories")
+                                           (:file "pos-tags")
+                                           (:file "represent-structures")
+                                           (:file "de-render")))
                              (:module "Italian"
                               :serial t
                               :components ((:file "categories")
