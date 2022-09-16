@@ -1,6 +1,3 @@
-;; Copyright 2022 Sony Computer Science Laboratories Paris
-;; Authors:       Remi van Trijp (http://www.remivantrijp.eu)
-
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
 ;; You may obtain a copy of the License at
@@ -16,6 +13,8 @@
 
 (in-package :fcg)
 
-(defvar *french-pos-tags-spacy* nil "POS tagset used by SpaCy for French.")
+(defvar *french-feature-set* nil 
+  "Features and value translation")
 
-(setf *french-pos-tags-spacy* *universal-pos-tags*)
+;; Simply use the feature-set of universaldependencies.org:
+(setf *french-feature-set* *universal-feature-set*)

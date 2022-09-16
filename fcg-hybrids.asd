@@ -19,7 +19,7 @@
 
 (defsystem :fcg-hybrids
   :author "Remi van Trijp <remi.vantrijp@sony.com>"
-  :version "1.0"
+  :version "2.0"
   :license "Apache 2.0-License"
   :depends-on (:fcg
                :xmls
@@ -59,13 +59,13 @@
                              (:module "French"
                               :serial t
                               :components ((:file "categories")
-                                           (:file "pos-tags")
                                            (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))
                              (:module "Italian"
                               :serial t
                               :components ((:file "categories")
+                                           (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))))
                (:file "examples"))

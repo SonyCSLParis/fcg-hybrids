@@ -108,6 +108,9 @@
         (make-dependency-spec :label "obl"
                               :keywords '(non-core-dependent nominal oblique)
                               :description "Oblique, e.g. 'She gave a book to her DAUGHTER.'")
+        (make-dependency-spec :label "obl:agent"
+                              :keywords '(agent non-core-dependent oblique)
+                              :description "Agent in a passive sentence.")
         (make-dependency-spec :label "vocative"
                               :keywords '(non-core-dependent nominal vocative)
                               :label "Vocative, e.g. 'GUYS, take it easy!'")

@@ -59,7 +59,8 @@
                                               `((indirect-object ,dep-unit-name)))
                                              ((attribute-p function language)
                                               `((attribute ,dep-unit-name)))
-                                             ;; TODO: add agent
+                                             ((agent-p function language)
+                                              `((agent ,dep-unit-name)))
                                              (t
                                               nil)))))
     (values dependency-head dependent-specs dependent-unit-names functional-structure)))

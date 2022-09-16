@@ -81,3 +81,12 @@
     `(root
       (boundaries ,new-boundaries)
       (form ,(append strings new-form-constraints)))))
+
+(defun de-render-basic-transient-structure (utterance cxn-inventory &optional (model "en"))
+  "Provides a basic transient structure using a dependency tree analysis."
+  (let* ((dependency-tree (nlp-tools:get-penelope-dependency-analysis utterance :model model))
+         (utterance-as-list (nlp-tools:dp-build-utterance-as-list-from-dependency-tree
+                             dependency-tree))
+         (basic-transient-structure (de-render utterance-as-list :de-render-with-scope
+                                               :cxn-inventory cxn-inventory)))
+    (values basic-transient-structure dependency-tree)))
