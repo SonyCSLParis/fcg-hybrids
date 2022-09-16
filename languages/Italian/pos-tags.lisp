@@ -18,6 +18,10 @@
 
 (in-package :fcg)
 
+;; Note 16/09/2022: This code is deprecated and no longer in use. It will be removed in 
+;;                  a future version.
+;; ------------------------------------------------------------------------------------
+
 (defvar *italan-pos-tags-spacy* nil "Tagset used by SpaCy for Italian. See http://www.italianlp.it/docs/ISST-TANL-POStagset.pdf")
 
 (setf *italian-pos-tags-spacy*
