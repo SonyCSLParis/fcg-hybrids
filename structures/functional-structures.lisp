@@ -20,7 +20,7 @@
 (export '(represent-functional-structure))
 
 (defgeneric represent-functional-structure 
-    (dependency-tree transient-structure key &optional language)
+    (dependency-tree transient-structure key cxn-inventory)
   (:documentation "Generic function for customizing how the functional structure of an utterance is represented in different languages."))
 
 ;; Usage:
@@ -34,7 +34,7 @@
 ;; The default method, implemented here, simply adds information from a 
 ;; spacy-dependency parse (provided by the :nlp-tools package) to a transient structure.
 
-(defun get-dependency-specs (word-spec word-specs &optional (language *universal-dependencies*))
+(defun get-dependency-specs (word-spec word-specs &optional (dependency-labels *universal-dependencies*))
   (let* ((dependency-head (unless (equal (word-dependency-spec-head-id word-spec)
                                          (word-dependency-spec-node-id word-spec))
                             (word-dependency-spec-unit-name
@@ -51,15 +51,15 @@
                                      for function = (word-dependency-spec-syn-role dependent-spec)
                                      for dep-unit-name = (word-dependency-spec-unit-name dependent-spec)
                                      append (cond 
-                                             ((subject-p function language)
+                                             ((subject-p function dependency-labels)
                                               `((subject ,dep-unit-name)))
-                                             ((direct-object-p function language)
+                                             ((direct-object-p function dependency-labels)
                                               `((direct-object ,dep-unit-name)))
-                                             ((indirect-object-p function language)
+                                             ((indirect-object-p function dependency-labels)
                                               `((indirect-object ,dep-unit-name)))
-                                             ((attribute-p function language)
+                                             ((attribute-p function dependency-labels)
                                               `((attribute ,dep-unit-name)))
-                                             ((agent-p function language)
+                                             ((agent-p function dependency-labels)
                                               `((agent ,dep-unit-name)))
                                              (t
                                               nil)))))
@@ -68,16 +68,17 @@
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
                                            (key t) ;; We assume the Penelope interface with SpaCy
-                                           &optional (language *fcg-hybrids-features*)) ;; Works for any language
+                                           cxn-inventory)
   "Given a dependency tree provided by the :NLP-TOOLS package, expand the transient structure with head-dependent relations.
    The transient structure is assumed to only contain a ROOT unit with the feature boundaries."
-  (declare (ignore key language))
+  (declare (ignore key cxn-inventory))
   (let* ((boundaries (fcg-get-boundaries transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree)) ;; For keeping track of unit names
          (new-units nil))
     (dolist (word-spec word-specs)
       (multiple-value-bind (dependency-head dependency-specs dependents)
           (get-dependency-specs word-spec word-specs)
+        (declare (ignore dependency-specs))
         ;; We collect the unit
         (push `(,(word-dependency-spec-unit-name word-spec)
                 ,@(if dependency-head `((dependency-head ,dependency-head)))
@@ -96,8 +97,8 @@
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
                                            (key (eql :universal-dependencies))
-                                           &optional (language *fcg-hybrids-categories*))
-  (declare (ignore key language))
+                                           cxn-inventory)
+  (declare (ignore key))
   (let* ((boundaries (fcg-get-boundaries transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree))
          ;; weight assume that only the ROOT currently exists
@@ -106,11 +107,16 @@
       (multiple-value-bind (dependency-head dependent-specs dependent-unit-names functional-structure)
           (get-dependency-specs word-spec word-specs)
         (multiple-value-bind (syn-cat-features lex-class)
-            (convert-features-from-word-spec word-spec)
+            (convert-features-from-word-spec 
+             word-spec
+             :pos-tag-set (or (get-configuration cxn-inventory :pos-tag-set)
+                              *universal-pos-tags*)
+             :feature-tag-set (or (get-configuration cxn-inventory :feature-tag-set)
+                                  *universal-feature-set*))
           ;; Collect the unit
           (push `(,(word-dependency-spec-unit-name word-spec)
                   ,@(find-all-features-for-fcg-category 
-                     lex-class language
+                     lex-class (get-configuration cxn-inventory :fcg-categories)
                      :features-so-far `(,@(if dependency-head `((dep-head ,dependency-head)))
                                         ,@(if dependent-specs `((dependents ,dependent-unit-names)))
                                         ,syn-cat-features

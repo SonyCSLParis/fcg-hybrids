@@ -39,10 +39,11 @@
 
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
-                                           (key (eql :english)) 
-                                           &optional (language *english-dependency-specs*))
-  (declare (ignore key))
-  (let* ((boundaries (fcg-get-boundaries transient-structure))
+                                           (key (eql :english))
+                                           cxn-inventory)
+  (declare (ignore key cxn-inventory))
+  (let* ((language *english-dependency-specs*)
+         (boundaries (fcg-get-boundaries transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree))
          ;; We assume that we only have the ROOT unit, and that we need to add units for each word.
          (new-units 

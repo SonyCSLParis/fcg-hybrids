@@ -18,9 +18,9 @@
 
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
-                                           (key (eql :french)) 
-                                           &optional (language *french-fcg-categories*))
+                                           (key (eql :french))
+                                           cxn-inventory)
   ;; We will simply call the method for universal dependencies.
   (declare (ignore key))
   (represent-functional-structure dependency-tree transient-structure :universal-dependencies 
-                                  language))
+                                  cxn-inventory))

@@ -21,9 +21,9 @@
 
 ;;;;; Example of using the base models.
 ;;;;; -------------------------------------------------------------------------------------------------
-(comprehend "I like cherries." :cxn-inventory *fcg-english*)
-(comprehend "Mi piacciono le ciliegie." :cxn-inventory *fcg-italian*)
-(comprehend "J'aime les cerises." :cxn-inventory *fcg-french*)
+;(comprehend "I like cherries." :cxn-inventory *fcg-english*)
+;(comprehend "Mi piacciono le ciliegie." :cxn-inventory *fcg-italian*)
+;(comprehend "J'aime les cerises." :cxn-inventory *fcg-french*)
 
 ;;;;; Example of the basic syntactic dependency parser using the spacy interface from :nlp-tools
 ;;;;; -------------------------------------------------------------------------------------------------

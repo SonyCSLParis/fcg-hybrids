@@ -29,6 +29,9 @@
                   (form set-of-predicates)
                   (meaning set-of-predicates))
   :fcg-configurations (;; ----------------------------------------------------------------------------------
+                       ;; Tagsets
+                       ;; ----------------------------------------------------------------------------------
+
                        ;; Render and De-rendering
                        ;; ----------------------------------------------------------------------------------
                        (:de-render-mode . :italian-hybrid)
@@ -57,4 +60,8 @@
                        )
   :visualization-configurations ((:show-constructional-dependencies . nil)
                                  (:with-search-debug-data . t))
-  :hierarchy-features (dependents))
+  :hierarchy-features (dependents)
+
+  (configure-tag-sets *fcg-italian*
+                      :pos-tag-set *italian-pos-tag-set*
+                      :fcg-categories *italian-fcg-categories*))

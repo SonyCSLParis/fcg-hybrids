@@ -18,13 +18,9 @@
 
 (in-package :fcg)
 
-;; Note 16/09/2022: This code is deprecated and no longer in use. It will be removed in 
-;;                  a future version.
-;; ------------------------------------------------------------------------------------
+(defvar *italan-pos-tag-set* nil "Tagset used by SpaCy for Italian. See http://www.italianlp.it/docs/ISST-TANL-POStagset.pdf")
 
-(defvar *italan-pos-tags-spacy* nil "Tagset used by SpaCy for Italian. See http://www.italianlp.it/docs/ISST-TANL-POStagset.pdf")
-
-(setf *italian-pos-tags-spacy*
+(setf *italian-pos-tag-set*
       '(;; A = Adjective
         ("A" adjective)
         ("AP" possessive-adjective)
@@ -77,32 +73,32 @@
         ("SYM" symbol)
         ("X" other)))
 
-(defun get-fcg-category-name (name lst)
-  (second (assoc name lst :test #'string=)))
+;;; (defun get-fcg-category-name (name lst)
+;;;   (second (assoc name lst :test #'string=)))
 
-(defun parse-morphologizer-spec (spacy-morphology-string pos-tag-set)
-  "Parse string of morphological features into list of feature-value pairs"
-  (let ((split (split-string spacy-morphology-string "__")))
-    (assert (= 2 (length split)))
-    (values (second  (assoc (first split) pos-tag-set :test #'string=))
-            (loop for fv-spec in (split-sequence::split-sequence #\| (second split))
-                  collect (split-sequence::split-sequence #\= fv-spec)))))
-;; (parse-morphologizer-spec "pc__clitic=yes|number=sing|person=1|prontype=prs")
+;;; (defun parse-morphologizer-spec (spacy-morphology-string pos-tag-set)
+;;;   "Parse string of morphological features into list of feature-value pairs"
+;;;   (let ((split (split-string spacy-morphology-string "__")))
+;;;     (assert (= 2 (length split)))
+;;;     (values (second  (assoc (first split) pos-tag-set :test #'string=))
+;;;             (loop for fv-spec in (split-sequence::split-sequence #\| (second split))
+;;;                   collect (split-sequence::split-sequence #\= fv-spec)))))
+;;; ;; (parse-morphologizer-spec "pc__clitic=yes|number=sing|person=1|prontype=prs")
 
-(defun retrieve-categorical-information (spacy-morphology-string pos-tag-set)
-  (multiple-value-bind (fcg-category feature-value-pairs)
-      (parse-morphologizer-spec spacy-morphology-string pos-tag-set)
-    (let (agreement syn-cat)
-      (loop for fv-pair in feature-value-pairs
-            for feature = (downcase (first fv-pair))
-            do (cond ((member feature '("gender" "number" "person") :test #'string=)
-                      (push (list (read-from-string feature) 
-                                  (read-from-string (second fv-pair))) agreement))
-                     ((string= feature "prontype")
-                      nil)
-                   (t
-                    (push (list (read-from-string feature) 
-                                (read-from-string (second fv-pair))) syn-cat))))
-      `(,fcg-category
-        ,@(if agreement `((agreement ,agreement)))
-        (syn-cat ,(cons `(lex-class ,fcg-category) syn-cat))))))
+;;; (defun retrieve-categorical-information (spacy-morphology-string pos-tag-set)
+;;;   (multiple-value-bind (fcg-category feature-value-pairs)
+;;;       (parse-morphologizer-spec spacy-morphology-string pos-tag-set)
+;;;     (let (agreement syn-cat)
+;;;       (loop for fv-pair in feature-value-pairs
+;;;             for feature = (downcase (first fv-pair))
+;;;             do (cond ((member feature '("gender" "number" "person") :test #'string=)
+;;;                       (push (list (read-from-string feature) 
+;;;                                   (read-from-string (second fv-pair))) agreement))
+;;;                      ((string= feature "prontype")
+;;;                       nil)
+;;;                    (t
+;;;                     (push (list (read-from-string feature) 
+;;;                                 (read-from-string (second fv-pair))) syn-cat))))
+;;;       `(,fcg-category
+;;;         ,@(if agreement `((agreement ,agreement)))
+;;;         (syn-cat ,(cons `(lex-class ,fcg-category) syn-cat))))))

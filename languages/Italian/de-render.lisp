@@ -28,6 +28,6 @@
     ;; Step 2: Expand the transient structure with information from the dependency tree.
     (setf basic-transient-structure
           (represent-functional-structure 
-           dependency-tree basic-transient-structure key *italian-fcg-categories*))
+           dependency-tree basic-transient-structure key cxn-inventory))
     ;; Return the transient structure:
     basic-transient-structure))

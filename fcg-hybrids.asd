@@ -65,6 +65,7 @@
                              (:module "Italian"
                               :serial t
                               :components ((:file "categories")
+                                           (:file "pos-tags")
                                            (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))))
