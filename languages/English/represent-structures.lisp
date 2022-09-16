@@ -30,52 +30,63 @@
 ;; We use the same method for simultaneously representing information regarding functional structure,
 ;; dependency relations, and part-of-speech information.
 
-(defun retrieve-lexical-fcg-category (word-dependency-spec &optional (pos-tags *english-pos-tags-spacy*))
-  (second (or (assoc (word-dependency-spec-syn-role word-dependency-spec) pos-tags :test #'string=)
-              (assoc (word-dependency-spec-pos-tag word-dependency-spec) pos-tags :test #'string=))))
+(defun retrieve-lexical-fcg-category (word-dependency-spec 
+                                      &optional (pos-tags *english-pos-tags-spacy*))
+  (second (or (assoc (word-dependency-spec-syn-role word-dependency-spec) 
+                     pos-tags :test #'string=)
+              (assoc (word-dependency-spec-pos-tag word-dependency-spec) 
+                     pos-tags :test #'string=))))
 
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
-                                           (key (eql :english)) &optional (language *english-dependency-specs*))
+                                           (key (eql :english)) 
+                                           &optional (language *english-dependency-specs*))
   (declare (ignore key))
   (let* ((boundaries (fcg-get-boundaries transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree))
          ;; We assume that we only have the ROOT unit, and that we need to add units for each word.
-         (new-units (loop for word-spec in word-specs
-                          ;; (1) We check whether the word has a head:
-                          for dependency-head = (unless ;; Unless the word doesn't point to a higher node:
-                                                    (equal (word-dependency-spec-head-id word-spec)
-                                                           (word-dependency-spec-node-id word-spec))
-                                                  (word-dependency-spec-unit-name
-                                                   (find (word-dependency-spec-head-id word-spec)
-                                                         word-specs :key #'word-dependency-spec-node-id :test #'equal)))
+         (new-units 
+          (loop for word-spec in word-specs
+                  ;; (1) We check whether the word has a head:
+                  for dependency-head = (unless ;; Unless the word doesn't point to a higher node:
+                                            (equal (word-dependency-spec-head-id word-spec)
+                                                   (word-dependency-spec-node-id word-spec))
+                                          (word-dependency-spec-unit-name
+                                           (find (word-dependency-spec-head-id word-spec)
+                                                 word-specs :key #'word-dependency-spec-node-id 
+                                                 :test #'equal)))
                           
-                          ;; (2) We check whether the word has dependents:
-                          for dependent-specs = (loop for other-word-spec in word-specs
-                                                      when (and (not (equal word-spec other-word-spec))
-                                                                (= (word-dependency-spec-head-id other-word-spec)
-                                                                   (word-dependency-spec-node-id word-spec)))
-                                                      collect other-word-spec)
-                          for dependent-unit-names = (mapcar #'word-dependency-spec-unit-name dependent-specs)
+                  ;; (2) We check whether the word has dependents:
+                  for dependent-specs 
+                  = (loop for other-word-spec in word-specs
+                          when (and (not (equal word-spec other-word-spec))
+                                    (= (word-dependency-spec-head-id other-word-spec)
+                                       (word-dependency-spec-node-id word-spec)))
+                            collect other-word-spec)
+                for dependent-unit-names 
+                  = (mapcar #'word-dependency-spec-unit-name dependent-specs)
 
-                          ;;(3) We check whether the dependents involve GRAMMATICAL FUNCTIONS.
-                          for functional-structure = (loop for dependent-spec in dependent-specs
-                                                           for function = (word-dependency-spec-syn-role dependent-spec)
-                                                           append (cond
-                                                                   ((subject-p function language)
-                                                                    `((subject ,(word-dependency-spec-unit-name dependent-spec))))
-                                                                   ((direct-object-p function language)
-                                                                    `((direct-object ,(word-dependency-spec-unit-name dependent-spec))))
-                                                                   ((indirect-object-p function language)
-                                                                    `((indirect-object ,(word-dependency-spec-unit-name dependent-spec))))
-                                                                   ((attribute-p function language)
-                                                                    `((attribute ,(word-dependency-spec-unit-name dependent-spec))))
-                                                                   ((object-predicate-p function language)
-                                                                    `((object-predicate ,(word-dependency-spec-unit-name dependent-spec))))
-                                                                    ((agent-p function language)
-                                                                     `((agent ,(clear-retrieve-agent-unit-name dependent-spec word-specs))))
-                                                                    (t
-                                                                     nil)))
+                  ;;(3) We check whether the dependents involve GRAMMATICAL FUNCTIONS.
+                  for functional-structure 
+                  = (loop for dependent-spec in dependent-specs
+                          for function = (word-dependency-spec-syn-role dependent-spec)
+                          append (cond
+                                  ((subject-p function language)
+                                   `((subject ,(word-dependency-spec-unit-name dependent-spec))))
+                                  ((direct-object-p function language)
+                                   `((direct-object 
+                                      ,(word-dependency-spec-unit-name dependent-spec))))
+                                  ((indirect-object-p function language)
+                                   `((indirect-object 
+                                      ,(word-dependency-spec-unit-name dependent-spec))))
+                                  ((attribute-p function language)
+                                   `((attribute ,(word-dependency-spec-unit-name dependent-spec))))
+                                  ((object-predicate-p function language)
+                                   `((object-predicate ,(word-dependency-spec-unit-name dependent-spec))))
+                                  ((agent-p function language)
+                                   `((agent ,(clear-retrieve-agent-unit-name dependent-spec word-specs))))
+                                  (t
+                                   nil)))
 
                           ;; (4) We collect the unit
                           collect `(,(word-dependency-spec-unit-name word-spec)

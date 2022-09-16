@@ -20,21 +20,14 @@
 
 (defmethod de-render ((utterance string) (mode (eql :italian-hybrid))
                       &key (key :italian) cxn-inventory (model "it") &allow-other-keys)
-  (declare (ignorable mode cxn-inventory))
-  ; Step 1: Get the dependency analysis:
-  (let* ((dependency-tree (nlp-tools:get-penelope-dependency-analysis utterance :model model))
-         ; Step 2: Use the dependency tree for segmenting the utterance into a list of strings:
-         (utterance-as-list (nlp-tools::dp-build-utterance-as-list-from-dependency-tree dependency-tree))
-         ;; Step 3: Use the list of strings for building a basic transient structure:
-         (basic-transient-structure (de-render utterance-as-list :de-render-with-scope
-                                               :cxn-inventory cxn-inventory)))
-    (represent-functional-structure dependency-tree basic-transient-structure key)))
-    ;(represent-dependency-structure dependency-tree basic-transient-structure key)))
-
-;;;     ;; Step 4: Expand the transient structure with information from the dependency tree:
-;;;     (setf basic-transient-structure
-;;;           (represent-functional-structure dependency-tree basic-transient-structure key *english-dependency-specs*))
-;;;     ;; Step 5: Expand the transient structure with information from the constituent tree:
-;;;     (setf basic-transient-structure
-;;;           (represent-constituent-structure constituent-tree basic-transient-structure key cxn-inventory))
-;;;     basic-transient-structure)))
+  (declare (ignorable mode))
+  ;; Step 1: Get the dependency analysis from the NLP-tools:
+  (multiple-value-bind (basic-transient-structure dependency-tree)
+      (de-render-basic-transient-structure utterance cxn-inventory model)
+    (declare (ignorable dependency-tree))
+    ;; Step 2: Expand the transient structure with information from the dependency tree.
+    (setf basic-transient-structure
+          (represent-functional-structure 
+           dependency-tree basic-transient-structure key *italian-fcg-categories*))
+    ;; Return the transient structure:
+    basic-transient-structure))

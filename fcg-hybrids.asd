@@ -28,7 +28,13 @@
   :serial t
   :components ((:file "configuration-and-utils")
                (:file "fcg-categories")
-               (:file "universal-dependencies")
+               (:module "universal-dependencies"
+                :serial t
+                :components ((:file "fcg-hybrids-categories")
+                             (:file "universal-dependencies")
+                             (:file "universal-pos-tags")
+                             (:file "universal-feature-set")
+                             (:file "convert-features")))
                (:file "syntactic-tags")
                (:module "structures" ;; Other possible terminology: layers, dimensions, perspectives
                 :serial t

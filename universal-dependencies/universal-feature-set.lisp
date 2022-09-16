@@ -1,5 +1,5 @@
 ;; Copyright 2022 Sony Computer Science Laboratories Paris
-;; Author         Remi van Trijp (http://www.remivantrijp.eu)
+;; Authors:       Remi van Trijp (http://www.remivantrijp.eu)
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -16,23 +16,22 @@
 
 (in-package :fcg)
 
-(defvar *french-fcg-categories* nil 
-  "FCG-categories for French grammars. Currently points to *fcg-hybrids-categories*.")
-(defvar *french-category-conversion* nil 
-  "Features and value translation")
+(defvar *universal-feature-set* nil "Features used by universaldependencies.org.")
 
-(setf *french-fcg-categories* *fcg-hybrids-categories*       
-      *french-category-conversion*
+;; Note: this feature set has been reduced to *ONLY* support the languages 
+;; ----- for which fcg-hybrids provides a base model.
+
+(setf *universal-feature-set*
       '(;; Lexical features
         ("PronType" subtype
-         (("Prs" personal) ;; il, elle, se
-          ("Rel" relative) ;; qui, dont, ou
-          ("Dem" demonstrative) ;; ceux
-          ("Neg" negative) ;; personne, aucun
-          ("Ind" indefinite) ;; quiconque
-          ("Int" interrogative) ;; que
-          ("Art" article) ;; le, un
-          ("Exc" exclamative))) ;; quel!
+         (("Prs" personal)
+          ("Rel" relative)
+          ("Dem" demonstrative)
+          ("Neg" negative)
+          ("Ind" indefinite)
+          ("Int" interrogative)
+          ("Art" article)
+          ("Exc" exclamative)))
         ("NumType" subtype
          (("Card" cardinal)
           ("Ord" ordinal)))
@@ -47,6 +46,10 @@
         ("Number" number
          (("Sing" singular)
           ("Plur" plural)))
+        ("Degree" degree
+         (("Cmp" comparative)
+          ("Sup" superlative)
+          ("Abs" absolutive)))
         ("Person" person
          (("1" 1)
           ("2" 2)
@@ -54,11 +57,14 @@
         ("Definite" is-definite
          (("Def" +)
           ("Ind" -)))
+        ("Clitic" is-clitic
+         (("Yes" +)))
         ;;; VERBS:
         ("VerbForm" verb-form
          (("Fin" finite)
           ("Inf" infinitive)
-          ("Part" participle)))
+          ("Part" participle)
+          ("Ger" gerund)))
         ("Mood" mood
          (("Ind" indicative)
           ("Imp" imperative)
@@ -66,8 +72,8 @@
           ("Sub" subjunctive)))
         ("Tense" tense
          (("Pres" present)
-          ("Imp" imperfect-past) ;; imparfait
-          ("Past" simple-past)
+          ("Imp" imperfect)
+          ("Past" past)
           ("Fut" future)))
         ("Voice" voice
          (("Pass" passive)))

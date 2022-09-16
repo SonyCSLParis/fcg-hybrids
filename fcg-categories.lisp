@@ -1,4 +1,3 @@
-
 ;; Copyright 2019 Sony Computer Science Laboratories Paris
 ;;                Remi van Trijp (http://www.remivantrijp.eu)
 

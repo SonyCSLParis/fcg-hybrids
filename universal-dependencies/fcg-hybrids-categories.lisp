@@ -16,16 +16,17 @@
 
 (in-package :fcg)
 
-(defmethod de-render ((utterance string) (mode (eql :french-hybrid))
-                      &key (key :french) cxn-inventory (model "fr") &allow-other-keys)
-  (declare (ignorable mode))
-  ;; Step 1: Get the dependency analysis from the NLP-tools:
-  (multiple-value-bind (basic-transient-structure dependency-tree)
-      (de-render-basic-transient-structure utterance cxn-inventory model)
-    (declare (ignorable dependency-tree))
-    ;; Step 2: Expand the transient structure with information from the dependency tree.
-    (setf basic-transient-structure
-          (represent-functional-structure 
-           dependency-tree basic-transient-structure key *french-fcg-categories*))
-    ;; Return the transient structure:
-    basic-transient-structure))
+(defvar *fcg-hybrids-categories* nil
+  "A basic category set to be used with universal dependencies.")
+
+(setf *fcg-hybrids-categories*
+      '((noun ()
+              (referent ?ref))
+        (adjective ()
+                   (referent ?ref))
+        (proper-noun (noun))
+        (verb ()
+              (referent ?ev-ref))
+        (determiner ()
+                    (referent ?ref))
+        (pronoun (noun))))

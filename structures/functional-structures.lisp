@@ -19,7 +19,8 @@
 
 (export '(represent-functional-structure))
 
-(defgeneric represent-functional-structure (dependency-tree transient-structure key &optional language)
+(defgeneric represent-functional-structure 
+    (dependency-tree transient-structure key &optional language)
   (:documentation "Generic function for customizing how the functional structure of an utterance is represented in different languages."))
 
 ;; Usage:
@@ -30,44 +31,97 @@
 ;; Example:
 ;; (represent-functional-structure dependency-tree transient-structure t :english)
 ;;
-;; The default method, implemented here, simply adds information from a spacy-dependency parse (provided by the :nlp-tools package)
-;; to a transient structure.
+;; The default method, implemented here, simply adds information from a 
+;; spacy-dependency parse (provided by the :nlp-tools package) to a transient structure.
+
+(defun get-dependency-specs (word-spec word-specs &optional (language *universal-dependencies*))
+  (let* ((dependency-head (unless (equal (word-dependency-spec-head-id word-spec)
+                                         (word-dependency-spec-node-id word-spec))
+                            (word-dependency-spec-unit-name
+                             (find (word-dependency-spec-head-id word-spec)
+                                   word-specs :key #'word-dependency-spec-node-id 
+                                   :test #'equal))))
+         (dependent-specs (loop for other-word-spec in word-specs
+                                  when (and (not (equal word-spec other-word-spec))
+                                            (= (word-dependency-spec-node-id word-spec)
+                                               (word-dependency-spec-head-id other-word-spec)))
+                                  collect other-word-spec))
+         (dependent-unit-names (mapcar #'word-dependency-spec-unit-name dependent-specs))
+         (functional-structure (loop for dependent-spec in dependent-specs
+                                     for function = (word-dependency-spec-syn-role dependent-spec)
+                                     for dep-unit-name = (word-dependency-spec-unit-name dependent-spec)
+                                     append (cond 
+                                             ((subject-p function language)
+                                              `((subject ,dep-unit-name)))
+                                             ((direct-object-p function language)
+                                              `((direct-object ,dep-unit-name)))
+                                             ((indirect-object-p function language)
+                                              `((indirect-object ,dep-unit-name)))
+                                             ((attribute-p function language)
+                                              `((attribute ,dep-unit-name)))
+                                             ;; TODO: add agent
+                                             (t
+                                              nil)))))
+    (values dependency-head dependent-specs dependent-unit-names functional-structure)))
 
 (defmethod represent-functional-structure ((dependency-tree list)
                                            (transient-structure coupled-feature-structure)
                                            (key t) ;; We assume the Penelope interface with SpaCy
-                                           &optional (language t)) ;; Works for any language
+                                           &optional (language *fcg-hybrids-features*)) ;; Works for any language
   "Given a dependency tree provided by the :NLP-TOOLS package, expand the transient structure with head-dependent relations.
    The transient structure is assumed to only contain a ROOT unit with the feature boundaries."
   (declare (ignore key language))
   (let* ((boundaries (fcg-get-boundaries transient-structure))
          (word-specs (make-word-specs-for-boundaries boundaries dependency-tree)) ;; For keeping track of unit names
-         (new-units (loop for word-spec in word-specs
-                          ;; We check whether the word has dependents:
-                          for dependents = (loop for other-word-spec in word-specs
-                                                 when (and (not (equal word-spec other-word-spec))
-                                                           (= (word-dependency-spec-head-id other-word-spec)
-                                                              (word-dependency-spec-node-id word-spec)))
-                                                 collect (word-dependency-spec-unit-name other-word-spec))
-                          ;; We check whether the word has a head:
-                          for dependency-head = (unless ;; Unless the word doesn't point to a higher node:
-                                                    (equal (word-dependency-spec-head-id word-spec)
-                                                           (word-dependency-spec-node-id word-spec))
-                                                  (word-dependency-spec-unit-name
-                                                   (find (word-dependency-spec-head-id word-spec)
-                                                         word-specs :key #'word-dependency-spec-node-id :test #'equal)))
-                          ;; We collect the unit
-                          collect `(,(word-dependency-spec-unit-name word-spec)
-                                    ,@(if dependency-head `((dependency-head ,dependency-head)))
-                                    ,@(if dependents `((dependents ,dependents)))
-                                    (syn-cat ((pos-tag ,(word-dependency-spec-pos-tag word-spec))
-                                              (dependency-relation ,(word-dependency-spec-syn-role word-spec))))))))
+         (new-units nil))
+    (dolist (word-spec word-specs)
+      (multiple-value-bind (dependency-head dependency-specs dependents)
+          (get-dependency-specs word-spec word-specs)
+        ;; We collect the unit
+        (push `(,(word-dependency-spec-unit-name word-spec)
+                ,@(if dependency-head `((dependency-head ,dependency-head)))
+                ,@(if dependents `((dependents ,dependents)))
+                (syn-cat ((pos-tag ,(word-dependency-spec-pos-tag word-spec))
+                          (dependency-relation ,(word-dependency-spec-syn-role word-spec)))))
+              new-units)))
     ;; Now we add the new units to the transient structure.
-    ;; This is situated in the left-pole-structure of the transient structure (right-pole-structure is no longer used).
+    ;; This is situated in the left-pole-structure of the transient structure 
+    ;; (right-pole-structure is no longer used).
     (setf (left-pole-structure transient-structure)
-          (append (left-pole-structure transient-structure) new-units))
+          (append (left-pole-structure transient-structure) (reverse new-units)))
     transient-structure))
-;;
+
+;; Using universal dependencies:
+(defmethod represent-functional-structure ((dependency-tree list)
+                                           (transient-structure coupled-feature-structure)
+                                           (key (eql :universal-dependencies))
+                                           &optional (language *fcg-hybrids-categories*))
+  (declare (ignore key language))
+  (let* ((boundaries (fcg-get-boundaries transient-structure))
+         (word-specs (make-word-specs-for-boundaries boundaries dependency-tree))
+         ;; weight assume that only the ROOT currently exists
+         (new-units nil))
+    (dolist (word-spec word-specs)
+      (multiple-value-bind (dependency-head dependent-specs dependent-unit-names functional-structure)
+          (get-dependency-specs word-spec word-specs)
+        (multiple-value-bind (syn-cat-features lex-class)
+            (convert-features-from-word-spec word-spec)
+          ;; Collect the unit
+          (push `(,(word-dependency-spec-unit-name word-spec)
+                  ,@(find-all-features-for-fcg-category 
+                     lex-class language
+                     :features-so-far `(,@(if dependency-head `((dep-head ,dependency-head)))
+                                        ,@(if dependent-specs `((dependents ,dependent-unit-names)))
+                                        ,syn-cat-features
+                                        ,@(if functional-structure 
+                                            `((functional-structure ,functional-structure))))))
+                new-units))))
+    (setf (left-pole-structure transient-structure)
+          (append (left-pole-structure transient-structure) (reverse new-units)))
+    (set-data transient-structure :dependency-tree dependency-tree)
+    (set-data transient-structure :word-specs word-specs)
+    transient-structure))
+
 ;; About functional structure:
 ;; ---------------------------
 ;; The functional structure of constructions consists in identifying grammatical functions such as

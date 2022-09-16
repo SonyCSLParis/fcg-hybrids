@@ -1,4 +1,5 @@
 ;; Copyright Sony Computer Science Laboratories Paris
+;; Copyright (c) 2021-Present Sony Computer Science Laboratories Paris
 ;; Authors: Remi van Trijp (http://www.remivantrijp.eu)
 ;;          Martina Galletti martina.galletti@sony.com
 ;;          Ines Blin ines.blin@sony.com
@@ -20,15 +21,4 @@
 
 (defvar *italian-fcg-categories* nil "FCG-categories for Italian grammars.")
 
-(setf *italian-fcg-categories*
-      '(;; Nominal:
-        (noun ()
-              (referent ?ref)
-              (agreement ((person ?person)
-                          (gender ?gender)
-                          (number ?number)))
-              (syn-cat ((lex-class noun)
-                        (definite ?def))))
-        (proper-noun (noun)
-                     (syn-cat ((lex-class proper-noun)
-                               (definite +))))))
+(setf *italian-fcg-categories* *fcg-hybrids-categories*)

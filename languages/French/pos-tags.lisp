@@ -18,7 +18,6 @@
 
 (defvar *french-pos-tags-spacy* nil "POS tagset used by SpaCy for French.")
 
-
 (setf *french-pos-tags-spacy*
       '(;; Open Class Words
         ("ADJ" adjective)
