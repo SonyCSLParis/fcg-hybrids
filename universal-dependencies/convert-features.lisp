@@ -33,7 +33,8 @@
                                         (feature-tag-set *universal-feature-set*))
   "For converting a long string of spacy into lex-class and feature-value pairs."
   (let* ((source (cl-ppcre:split "__" (word-dependency-spec-pos-tag word-spec)))
-         (lex-class (second (assoc (first source) pos-tag-set :test #'string=)))
+         (pos-tag (first (cl-ppcre:split "_" (first source))))
+         (lex-class (second (assoc pos-tag pos-tag-set :test #'string=)))
          (features-and-values (loop for fv-pair in (cl-ppcre::split "\\|" (second source))
                                     collect (cl-ppcre::split "=" fv-pair))))
     (values

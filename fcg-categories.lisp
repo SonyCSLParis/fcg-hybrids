@@ -73,6 +73,7 @@
                                        ((null new-value) old-value)
                                        ((variable-p old-value) new-value)
                                        ((variable-p new-value) old-value)
+                                       ((symbolp old-value) old-value)
                                        (t
                                         (union old-value new-value :key #'first)))))
           do (setf features-so-far (if old-feature
