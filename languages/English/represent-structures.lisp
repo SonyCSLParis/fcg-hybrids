@@ -108,29 +108,25 @@
 ;; Constituent Structure (based on BeNePar):
 ;; -------------------------------------------------------------------------------------------------------------
 
+(defun flatten-constituent-tree (constituent-tree)
+  (if (null constituent-tree)
+    constituent-tree
+    (let ((current-category (first constituent-tree))
+          (children (rest constituent-tree)))
+      (cond ((symbolp (first children)) children)
+            ((member current-category (mapcar #'first children))
+             (flatten-constituent-tree `(,current-category
+                                         ,@(loop for child in children
+                                                 append (if (eql current-category (first child))
+                                                          (rest child)
+                                                          (list child))))))
+            (t
+             `(,current-category ,@(mapcar #'flatten-constituent-tree children)))))))
+(flatten-constituent-tree *tree*)
+
+        
+
 ;; (comprehend "I will be going" :cxn-inventory *fcg-english*)
-
-(defun flattable-phrase-p (constituent-tree)
-  (let ((phrase-type (first constituent-tree)))
-    (and (member phrase-type '(vp)) ;; Perhaps we should add others like NP as well
-         (assoc phrase-type (rest constituent-tree)))))
-;; (flattable-phrase-p '(np (a b) (np det n)))
-
-(defun flatten-phrases (constituent-tree)
-  "Avoid unnecessary nesting of the tree."
-  (cond ((null constituent-tree) nil)
-        ((terminal-node-p constituent-tree) constituent-tree)
-        ((flattable-phrase-p constituent-tree)
-         (let ((phrase-type (first constituent-tree)))
-           (cons phrase-type
-                 (mapcar #'flatten-phrases (loop for constituent in (rest constituent-tree)
-                                                 append (if (eql phrase-type (first constituent))
-                                                          (rest constituent)
-                                                          (list constituent)))))))
-        (t
-         (cons (first constituent-tree)
-               (mapcar #'flatten-phrases (rest constituent-tree))))))
-
 (defmethod represent-constituent-structure ((constituent-tree list)
                                             (transient-structure coupled-feature-structure)
                                             (key (eql :english))
@@ -138,11 +134,11 @@
                                             &optional (language t))
   "Represent constituent structure using BeNePar, assuming already a dependency structure."
   (declare (ignore key language))
-  ; (setf constituent-tree (flatten-phrases constituent-tree))
   (let* (;; We already have units for all terminal nodes of the constituent structure:
          (original-unit-names (mapcar #'first (fcg-get-boundaries transient-structure)))
          (original-units (fcg-get-transient-unit-structure transient-structure))
          (units nil))
+    (setf constituent-tree (flatten-constituent-tree constituent-tree))
     ;; We will first traverse the tree and create a list of units that have parent- and
     ;; constituent-features. We will afterwards replace the terminal nodes with the original
     ;; units from the dependency tree so we merge the constituent- and dependency-tree information.
