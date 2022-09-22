@@ -114,12 +114,17 @@
     (let ((current-category (first constituent-tree))
           (children (rest constituent-tree)))
       (cond ((symbolp (first children)) children)
-            ((member current-category (mapcar #'first children))
+            ((and (not (string= "S" (symbol-name current-category)))
+                  (member current-category (mapcar #'first children)))
              (flatten-constituent-tree `(,current-category
                                          ,@(loop for child in children
                                                  append (if (eql current-category (first child))
                                                           (rest child)
                                                           (list child))))))
+            ((and (string= "S" (symbol-name current-category))
+                  (= (length children) 1)
+                  (string= "VP" (symbol-name (caar children))))
+             (flatten-constituent-tree (first children)))
             (t
              `(,current-category ,@(mapcar #'flatten-constituent-tree children)))))))
 

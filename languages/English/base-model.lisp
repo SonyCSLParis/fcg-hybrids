@@ -18,6 +18,8 @@
 
 (defparameter *fcg-english* nil "Parameter for the base model of English.")
 
+(export '(constituents dependents footprints boundaries agreement form meaning))
+
 (def-fcg-constructions english-base-model
   :cxn-inventory *fcg-english*
   :cxn-inventory-type hashed-fcg-construction-set
@@ -25,7 +27,7 @@
                   (fcg::dependents set)
                   (fcg::footprints set)
                   (fcg::boundaries set-of-predicates)
-                  (agreement sequence)
+                  (fcg::agreement sequence)
                   (args sequence)
                   (fcg::form set-of-predicates)
                   (fcg::meaning set-of-predicates))
@@ -67,31 +69,57 @@
  :visualization-configurations ((:show-wiki-links-in-predicate-networks . nil)
                                 (:show-constructional-dependencies . nil)
                                 (:with-search-debug-data . t))
- :hierarchy-features (constituents dependents))
+ :hierarchy-features (constituents dependents)
 
-;;;  ;; S <- NP VP
-;;;  (def-fcg-cxn Subject-Predicate-cxn
-;;;               (
-;;;                <-
-;;;                (?clause
-;;;                 (footprints (Subject-Predicate-cxn))
-;;;                 (fields (subject-phrase ?subject-phrase)
-;;;                         (verb-phrase ?verb-phrase))
-;;;                 --
-;;;                 (footprints (not Subject-Predicate-cxn))
-;;;                 (syn-cat (clause-type ?clause-type))
-;;;                 (constituents (?subject-phrase ?verb-phrase)))
-;;;                (?verb-phrase
-;;;                 --
-;;;                 (syn-cat (phrase-type verb-phrase)))
-;;;                (?subject-phrase
-;;;                 --
-;;;                 (syn-cat (phrase-type noun-phrase)))
-;;;                (root
-;;;                 --
-;;;                 (form ((meets ?subject-phrase ?verb-phrase ?clause)))))
-;;;               :disable-automatic-footprints t
-;;;               :cxn-set structural)
+ ;; S <- NP VP
+ (def-fcg-cxn Subject-Predicate-cxn
+              (<-
+               (?clause
+                (footprints (Subject-Predicate-cxn))
+                (fields (subject-phrase ?subject-phrase)
+                        (verb-phrase ?verb-phrase))
+                --
+                (footprints (not Subject-Predicate-cxn))
+                (syn-cat (clause-type ?clause-type))
+                (constituents (?subject-phrase ?verb-phrase))
+                (hash form ((meets ?subject-phrase ?verb-phrase ?clause))))
+               (?verb-phrase
+                --
+                (syn-cat (phrase-type verb-phrase)))
+               (?subject-phrase
+                --
+                (syn-cat (phrase-type noun-phrase))))
+              :disable-automatic-footprints t
+              :cxn-set structural)
+
+ ;; S <- NP ADV VP
+ (def-fcg-cxn Subject-Somephrase-Predicate-cxn
+              (<-
+               (?clause
+                (footprints (Subject-Predicate-cxn))
+                (fields (subject-phrase ?subject-phrase)
+                        (verb-phrase ?verb-phrase))
+                --
+                (footprints (not Subject-Predicate-cxn))
+                (syn-cat (clause-type ?clause-type))
+                (constituents (?subject-phrase ?verb-phrase))
+                (hash form ((meets ?subject-phrase ?another-phrase ?clause)
+                            (meets ?another-phrase ?verb-phrase ?clause))))
+               (?verb-phrase
+                --
+                (syn-cat (phrase-type verb-phrase)))
+               (?subject-phrase
+                --
+                (syn-cat (phrase-type noun-phrase)))
+               (?main-verb
+                --
+                (functional-structure (subject ?subject))
+                (parent ?verb-phrase))
+               (?subject
+                --
+                (parent ?subject-phrase)))
+              :disable-automatic-footprints t
+              :cxn-set structural))
 
 ;;;  ;; S <- NP WH-S
 ;;;  (def-fcg-cxn Interrogative-Subject-Predicate-cxn
