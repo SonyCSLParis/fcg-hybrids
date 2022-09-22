@@ -122,9 +122,6 @@
                                                           (list child))))))
             (t
              `(,current-category ,@(mapcar #'flatten-constituent-tree children)))))))
-(flatten-constituent-tree *tree*)
-
-        
 
 ;; (comprehend "I will be going" :cxn-inventory *fcg-english*)
 (defmethod represent-constituent-structure ((constituent-tree list)
