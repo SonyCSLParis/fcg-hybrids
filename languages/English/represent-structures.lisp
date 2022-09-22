@@ -113,7 +113,7 @@
     constituent-tree
     (let ((current-category (first constituent-tree))
           (children (rest constituent-tree)))
-      (cond ((symbolp (first children)) children)
+      (cond ((not (listp (first children))) children)
             ((and (not (string= "S" (symbol-name current-category)))
                   (member current-category (mapcar #'first children)))
              (flatten-constituent-tree `(,current-category

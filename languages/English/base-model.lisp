@@ -71,6 +71,34 @@
                                 (:with-search-debug-data . t))
  :hierarchy-features (constituents dependents)
 
+ ;; Verb-to-Verb-construction
+ (def-fcg-cxn Verb-to-Verb-construction
+              ((?second-verb-phrase
+                (sem-cat (semantic-subject ?subject-phrase)))
+               <-
+               (?to
+                --
+                (hash form ((string ?to "to"))))
+               (?verb-phrase
+                --
+                (syn-cat (phrase-type verb-phrase))
+                (parent ?clause)
+                (hash form ((meets ?verb1 ?to ?verb-phrase)
+                            (meets ?to ?verb2 ?verb-phrase))))
+               (?verb1
+                --
+                (syn-cat (lex-class verb))
+                (parent ?verb-phrase))
+               (?verb2
+                --
+                (syn-cat (lex-class verb))
+                (parent ?second-verb-phrase))
+               (?clause
+                --
+                (fields (subject-phrase ?subject-phrase)
+                        (verb-phrase ?verb-phrase))))
+              :cxn-set structural)
+
  ;; S <- NP VP
  (def-fcg-cxn Subject-Predicate-cxn
               (<-
