@@ -48,7 +48,7 @@
                        ;; ----------------------------------------------------------------------------------
                        ;; Node tests
                        ;; ----------------------------------------------------------------------------------
-                       (:node-tests :update-references :check-duplicate :restrict-nr-of-nodes)
+                       (:node-tests :check-duplicate :restrict-nr-of-nodes)
                        (:update-boundaries-feature . constituents)
                        (:parse-goal-tests :no-applicable-cxns)
                        (:production-goal-tests :no-applicable-cxns)
