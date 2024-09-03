@@ -48,7 +48,13 @@
                ;; Supported languages:
                (:module "languages"
                 :serial t
-                :components ((:module "English"
+                :components ((:module "Dutch"
+                              :serial t
+                              :components ((:file "categories")
+                                           (:file "represent-structures")
+                                           (:file "de-render")
+                                           (:file "base-model")))
+                             (:module "English"
                               :serial t
                               :components ((:file "categories")
                                            (:file "pos-tags")
@@ -62,10 +68,22 @@
                                            (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))
+                             (:module "German"
+                              :serial t
+                              :components ((:file "categories")
+                                           (:file "represent-structures")
+                                           (:file "de-render")
+                                           (:file "base-model")))
                              (:module "Italian"
                               :serial t
                               :components ((:file "categories")
                                            (:file "pos-tags")
+                                           (:file "represent-structures")
+                                           (:file "de-render")
+                                           (:file "base-model")))
+                             (:module "Spanish"
+                              :serial t
+                              :components ((:file "categories")
                                            (:file "represent-structures")
                                            (:file "de-render")
                                            (:file "base-model")))))
