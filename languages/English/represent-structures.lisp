@@ -110,23 +110,23 @@
 
 (defun flatten-constituent-tree (constituent-tree)
   (if (null constituent-tree)
-    constituent-tree
-    (let ((current-category (first constituent-tree))
-          (children (rest constituent-tree)))
-      (cond ((not (listp (first children))) children)
-            ((and (not (string= "S" (symbol-name current-category)))
-                  (member current-category (mapcar #'first children)))
-             (flatten-constituent-tree `(,current-category
-                                         ,@(loop for child in children
-                                                 append (if (eql current-category (first child))
-                                                          (rest child)
-                                                          (list child))))))
-            ((and (string= "S" (symbol-name current-category))
-                  (= (length children) 1)
-                  (string= "VP" (symbol-name (caar children))))
-             (flatten-constituent-tree (first children)))
-            (t
-             `(,current-category ,@(mapcar #'flatten-constituent-tree children)))))))
+     constituent-tree
+     (let ((current-category (first constituent-tree))
+           (children (rest constituent-tree)))
+       (cond ((not (listp (first children))) children)
+             ((and (not (string= "S" (symbol-name current-category)))
+                   (member current-category (mapcar #'first children)))
+              (flatten-constituent-tree `(,current-category
+                                          ,@(loop for child in children
+                                                  append (if (eql current-category (first child))
+                                                           (rest child)
+                                                           (list child))))))
+             ((and (string= "S" (symbol-name current-category))
+                   (= (length children) 1)
+                   (string= "VP" (symbol-name (caar children))))
+              (flatten-constituent-tree (first children)))
+             (t
+              `(,current-category ,@(mapcar #'flatten-constituent-tree children)))))))
 
 ;; (comprehend "I will be going" :cxn-inventory *fcg-english*)
 (defmethod represent-constituent-structure ((constituent-tree list)
@@ -135,6 +135,7 @@
                                             (cxn-inventory t)
                                             &optional (language t))
   "Represent constituent structure using BeNePar, assuming already a dependency structure."
+  (pprint constituent-tree)
   (declare (ignore key language))
   (let* (;; We already have units for all terminal nodes of the constituent structure:
          (original-unit-names (mapcar #'first (fcg-get-boundaries transient-structure)))
@@ -201,3 +202,27 @@
         (setf (left-pole-structure transient-structure)
               (cons new-root units))
         transient-structure))))
+
+;;; ;; Topological Structure:
+;;; ;; -------------------------------------------------------------------------------------------------------------
+;;; TODO
+
+;;; (defun clausal-unit-p (unit)
+;;;   (second (assoc 'clause-type (unit-feature-value unit 'syn-cat))))
+
+;;; (defmethod represent-topological-structure ((transient-structure coupled-feature-structure)
+;;;                                             (key (eql :english))
+;;;                                             (cxn-inventory t))
+;;;   (declare (ignore key cxn-inventory))
+;;;   (let ((boundaries (fcg-get-boundaries transient-structure))
+;;;         (units (fcg-get-transient-unit-structure transient-structure))
+;;;         (new-units nil))
+;;;     ;; Currently we are only interested in clauses!
+;;;     (dolist (unit units)
+;;;       (if (clausal-unit-p unit)
+;;;         (let* ((constituent-names (unit-feature-value unit 'constituents))
+;;;                
+;;;         (push unit new-units)))
+;;;     (setf (left-pole-structure transient-structure) (reverse new-units))
+;;;     transient-structure))
+
